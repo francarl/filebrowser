@@ -28,6 +28,8 @@ jobs:
           node-version: "22.x"
           cache: "pnpm"
           cache-dependency-path: "frontend/pnpm-lock.yaml"
+      - name: Build frontend
+        run: make build-frontend
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2
         with:
