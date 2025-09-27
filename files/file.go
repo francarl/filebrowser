@@ -221,8 +221,6 @@ func (i *FileInfo) RealPath() string {
 
 func (i *FileInfo) detectType(modify, saveContent, readHeader bool) error {
 
-	log.Printf("readHeader: %t", readHeader)
-
 	if IsNamedPipe(i.Mode) {
 		i.Type = "blob"
 		return nil
