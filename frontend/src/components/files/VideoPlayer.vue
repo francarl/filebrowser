@@ -138,8 +138,8 @@ class FrameByFrameButton extends Button {
       // Start by pausing the player
       this.p.pause();
       // Calculate movement distance
-      var dist = this.frameTime * this.stepSize;
-      this.p.currentTime(this.p.currentTime() + dist);
+      const dist = this.frameTime * this.stepSize;
+      this.p.currentTime((this.p.currentTime() || 0) + dist);
     }
 }
 
