@@ -25,7 +25,6 @@ import "videojs-mobile-ui";
 import "videojs-hotkeys";
 import "video.js/dist/video-js.min.css";
 import "videojs-mobile-ui/dist/videojs-mobile-ui.css";
-import "@douglassllc/videojs-framebyframe"
 
 const videoPlayer = ref<HTMLElement | null>(null);
 const player = ref<Player | null>(null);
@@ -50,16 +49,64 @@ var zoomrotate = {
 			rotate: 0, 
 			zoom: 1
 		};
+
 const Button = videojs.getComponent("Button");
+
+
+class ZoomInCustomButton extends Button {
+
+    constructor(player: Player, options?: any) {
+        super(player, options);
+    }
+     
+    override createEl() {
+        const el = super.createEl("button", {
+            className: "vjs-custom-button", 
+        });
+        el.innerHTML = '<i class="material-icons">add</i>';
+        return el;
+    }
+
+    handleClick() {
+        var vi = this.player().children()[0];
+				
+        zoomrotate.zoom += 0.1;
+				vi.style.transform = 'scale(' + zoomrotate.zoom + ') rotate(' + zoomrotate.rotate + 'deg)';	
+				
+    }
+}
+
+class ZoomOutCustomButton extends Button {
+
+    constructor(player: Player, options?: any) {
+        super(player, options);
+    }
+     
+    override createEl() {
+        const el = super.createEl("button", {
+            className: "vjs-custom-button", 
+        });
+        el.innerHTML = '<i class="material-icons">remove</i>';
+        return el;
+    }
+
+    handleClick() {
+        var vi = this.player().children()[0];
+				
+        zoomrotate.zoom -= 0.1;
+				vi.style.transform = 'scale(' + zoomrotate.zoom + ') rotate(' + zoomrotate.rotate + 'deg)';	
+				
+    }
+}
 
 class RotateCustomButton extends Button {
     constructor(player: Player, options?: any) {
         super(player, options);
     }
-
-    createEl() {
+     
+    override createEl() {
         const el = super.createEl("button", {
-            className: "vjs-custom-button", // Aggiungi una classe per lo stile
+            className: "vjs-custom-button", 
         });
         el.innerHTML = '<span class="vjs-icon-replay" aria-hidden="true"></span>';
         return el;
@@ -72,18 +119,47 @@ class RotateCustomButton extends Button {
     }
 }
 
+class FrameByFrameButton extends Button {
+
+    p: Player;
+    frameTime: number;
+    stepSize: number;
+
+    constructor(player: Player, options?: any) {
+      super(player, options);
+      this.p = player;
+      this.frameTime = 1/options.fps;
+      this.stepSize = options.value;
+
+      this.el().innerHTML = `<div class="vjs-control-content"><span class="vjs-fbf">${options.text}</span></div>`;
+    }
+
+    handleClick() {
+      // Start by pausing the player
+      this.p.pause();
+      // Calculate movement distance
+      var dist = this.frameTime * this.stepSize;
+      this.p.currentTime(this.p.currentTime() + dist);
+    }
+}
+
+
 /**
  * 2. Registrazione del Componente
  */
 // Il nome 'CustomButton' sarà utilizzato per fare riferimento al pulsante nelle opzioni.
-videojs.registerComponent("rotateCstomButton", RotateCustomButton);
+videojs.registerComponent("rotateCustomButton", RotateCustomButton);
+videojs.registerComponent("frameByFrameButton", FrameByFrameButton);
+videojs.registerComponent("zoomInCustomButton", ZoomInCustomButton);
+videojs.registerComponent("zoomOutCustomButton", ZoomOutCustomButton);
 // --- FINE DEL NUOVO CODICE ---
 
 nextTick(() => {
   initVideoPlayer();
 });
 
-onMounted(() => {});
+onMounted(() => { 
+});
 
 onBeforeUnmount(() => {
   if (player.value) {
@@ -109,7 +185,7 @@ const initVideoPlayer = async () => {
     //Supporting localized language display.
     const langOpt = { language: code };
     // support for playback at different speeds.
-    const playbackRatesOpt = { playbackRates: [0.1, 0.2, 0.3, 0.4, 0.5, 0.8, 1.0, 1.5, 2.0] };
+    const playbackRatesOpt = { playbackRates: [0.1, 0.2, 0.5, 1.0, 1.5, 2.0] };
     const options = getOptions(
       props.options,
       langOpt,
@@ -117,6 +193,17 @@ const initVideoPlayer = async () => {
       playbackRatesOpt
     );
     player.value = videojs(videoPlayer.value!, options, () => {});
+
+    const controlBar = player.value.getChild('ControlBar');
+    if (controlBar) {
+        // Usa il nome con cui hai registrato il componente (CustomButton)
+        console.log("Adding custom button to control bar");
+        controlBar.addChild('rotateCustomButton', {});
+        controlBar.addChild('frameByFrameButton', { fps: 30, text: '<', value: -1 });
+        controlBar.addChild('frameByFrameButton', { fps: 30, text: '>', value: 1 });
+        controlBar.addChild('zoomInCustomButton', {});
+        controlBar.addChild('zoomOutCustomButton', {});
+    }  
 
     // TODO: need to test on mobile
     // @ts-expect-error no ts definition for mobileUi
@@ -133,6 +220,7 @@ const getOptions = (...srcOpt: any[]) => {
         forward: 5,
         backward: 5,
       },
+      pictureInPictureToggle: false
     },
     html5: {
       nativeTextTracks: false,
@@ -143,17 +231,7 @@ const getOptions = (...srcOpt: any[]) => {
         seekStep: 10,
         enableModifiersForNumbers: false,
       },
-      framebyframe: {
-        fps: 30,
-        steps: [
-          { text: '< 1f', step: -1 },
-          { text: '1f >', step: 1 }
-        ]
-      },
       muted: true,
-		  controlBar: {
-		    pictureInPictureToggle: false
-		  }
     },
   };
 
@@ -222,5 +300,11 @@ const languageImports: LanguageImports = {
 .video-max {
   width: 100%;
   height: 100%;
+}
+
+.vjs-fbf {
+  border: 1px solid white;
+  padding: 2px 3px;
+  border-radius: 2px;
 }
 </style>
