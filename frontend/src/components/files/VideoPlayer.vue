@@ -131,7 +131,7 @@ class FrameByFrameButton extends Button {
       this.frameTime = 1/options.fps;
       this.stepSize = options.value;
 
-      this.el().innerHTML = `<div class="vjs-control-content"><span class="vjs-fbf">${options.text}</span></div>`;
+      this.el().innerHTML = `<i class="material-icons">${options.text}</i>`;
     }
 
     handleClick() {
@@ -199,8 +199,8 @@ const initVideoPlayer = async () => {
         // Usa il nome con cui hai registrato il componente (CustomButton)
         console.log("Adding custom button to control bar");
         controlBar.addChild('rotateCustomButton', {});
-        controlBar.addChild('frameByFrameButton', { fps: 30, text: '<', value: -1 });
-        controlBar.addChild('frameByFrameButton', { fps: 30, text: '>', value: 1 });
+        controlBar.addChild('frameByFrameButton', { fps: 30, text: 'arrow_back', value: -1 });
+        controlBar.addChild('frameByFrameButton', { fps: 30, text: 'arrow_forward', value: 1 });
         controlBar.addChild('zoomInCustomButton', {});
         controlBar.addChild('zoomOutCustomButton', {});
     }  
