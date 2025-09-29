@@ -11,6 +11,9 @@ importers:
       '@chenfengyuan/vue-number-input':
         specifier: ^2.0.1
         version: 2.0.1(vue@3.5.17(typescript@5.6.3))
+      '@douglassllc/videojs-framebyframe':
+        specifier: ^1.2.0
+        version: 1.2.0
       '@vueuse/core':
         specifier: ^12.5.0
         version: 12.5.0(typescript@5.6.3)
@@ -736,6 +739,9 @@ packages:
   '@csstools/css-tokenizer@3.0.3':
     resolution: {integrity: sha512-UJnjoFsmxfKUdNYdWgOB0mWUypuLvAfQPH1+pyvRJs6euowbFkFC6P13w1l8mJyi3vxYMxc9kld5jZEGRQs6bw==}
     engines: {node: '>=18'}
+
+  '@douglassllc/videojs-framebyframe@1.2.0':
+    resolution: {integrity: sha512-iT5nS5NwxzIZAVtpoBpbV7Gnj6l131MWJ4KoAnVQVnSc6CRSQPckX3/tSxOj6TwJ84WqtjvPxQ+sjrAvMTz5ZA==}
 
   '@esbuild/aix-ppc64@0.25.9':
     resolution: {integrity: sha512-OaGtL73Jck6pBKjNIe24BnFE6agGl+6KxDtTfHhy1HmhthfKouEcOhqpSL64K4/0WCtbKFLOdzD/44cJ4k9opA==}
@@ -3608,6 +3614,10 @@ snapshots:
       '@csstools/css-tokenizer': 3.0.3
 
   '@csstools/css-tokenizer@3.0.3': {}
+
+  '@douglassllc/videojs-framebyframe@1.2.0':
+    dependencies:
+      video.js: 8.23.3
 
   '@esbuild/aix-ppc64@0.25.9':
     optional: true

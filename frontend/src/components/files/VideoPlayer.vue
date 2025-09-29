@@ -44,6 +44,41 @@ const props = withDefaults(
 const source = ref(props.source);
 const sourceType = ref("");
 
+
+// --- INIZIO DEL NUOVO CODICE ---
+var zoomrotate = { 
+			rotate: 0, 
+			zoom: 1
+		};
+const Button = videojs.getComponent("Button");
+
+class RotateCustomButton extends Button {
+    constructor(player: Player, options?: any) {
+        super(player, options);
+    }
+
+    createEl() {
+        const el = super.createEl("button", {
+            className: "vjs-custom-button", // Aggiungi una classe per lo stile
+        });
+        el.innerHTML = '<span class="vjs-icon-replay" aria-hidden="true"></span>';
+        return el;
+    }
+
+    handleClick() {
+        var vi = this.player().children()[0];
+				zoomrotate.rotate += 90;
+				vi.style.transform = 'scale(' + zoomrotate.zoom + ') rotate(' + zoomrotate.rotate + 'deg)';	  
+    }
+}
+
+/**
+ * 2. Registrazione del Componente
+ */
+// Il nome 'CustomButton' sarà utilizzato per fare riferimento al pulsante nelle opzioni.
+videojs.registerComponent("rotateCstomButton", RotateCustomButton);
+// --- FINE DEL NUOVO CODICE ---
+
 nextTick(() => {
   initVideoPlayer();
 });
@@ -114,7 +149,11 @@ const getOptions = (...srcOpt: any[]) => {
           { text: '< 1f', step: -1 },
           { text: '1f >', step: 1 }
         ]
-      }
+      },
+      muted: true,
+		  controlBar: {
+		    pictureInPictureToggle: false
+		  }
     },
   };
 
