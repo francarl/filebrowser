@@ -25,6 +25,7 @@ import "videojs-mobile-ui";
 import "videojs-hotkeys";
 import "video.js/dist/video-js.min.css";
 import "videojs-mobile-ui/dist/videojs-mobile-ui.css";
+import "@douglassllc/videojs-framebyframe"
 
 const videoPlayer = ref<HTMLElement | null>(null);
 const player = ref<Player | null>(null);
@@ -73,7 +74,7 @@ const initVideoPlayer = async () => {
     //Supporting localized language display.
     const langOpt = { language: code };
     // support for playback at different speeds.
-    const playbackRatesOpt = { playbackRates: [0.5, 1, 1.5, 2, 2.5, 3] };
+    const playbackRatesOpt = { playbackRates: [0.1, 0.2, 0.3, 0.4, 0.5, 0.8, 1.0, 1.5, 2.0] };
     const options = getOptions(
       props.options,
       langOpt,
@@ -107,6 +108,13 @@ const getOptions = (...srcOpt: any[]) => {
         seekStep: 10,
         enableModifiersForNumbers: false,
       },
+      framebyframe: {
+        fps: 30,
+        steps: [
+          { text: '< 1f', step: -1 },
+          { text: '1f >', step: 1 }
+        ]
+      }
     },
   };
 
