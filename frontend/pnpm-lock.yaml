@@ -11,6 +11,9 @@ importers:
       '@chenfengyuan/vue-number-input':
         specifier: ^2.0.1
         version: 2.0.1(vue@3.5.17(typescript@5.6.3))
+      '@theonlyducks/videojs-zoom':
+        specifier: ^1.3.6
+        version: 1.3.6(video.js@8.23.3)
       '@vueuse/core':
         specifier: ^12.5.0
         version: 12.5.0(typescript@5.6.3)
@@ -1192,6 +1195,12 @@ packages:
     resolution: {integrity: sha512-StxAO/8ts62KZVRAm4JZYq9+NqNsV7RvimNK+YM7ry//zebEH6meuugqW/P5OFUCjyQgui+9fUxT6d5NShvMvA==}
     cpu: [x64]
     os: [win32]
+
+  '@theonlyducks/videojs-zoom@1.3.6':
+    resolution: {integrity: sha512-jj7r9YhU89wgLx5sHKmUUL/FXV/B/RhQehvy/gjEjIyC4atP+jAgr3elZJ9fp86eVg/L9BWiCGHw0lXU4bd9qw==}
+    engines: {node: '>=16.0'}
+    peerDependencies:
+      video.js: '>= ^7 || >= ^8'
 
   '@tsconfig/node22@22.0.2':
     resolution: {integrity: sha512-Kmwj4u8sDRDrMYRoN9FDEcXD8UpBSaPQQ24Gz+Gamqfm7xxn+GBR7ge/Z7pK8OXNGyUzbSwJj+TH6B+DS/epyA==}
@@ -3944,6 +3953,10 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.50.1':
     optional: true
+
+  '@theonlyducks/videojs-zoom@1.3.6(video.js@8.23.3)':
+    dependencies:
+      video.js: 8.23.3
 
   '@tsconfig/node22@22.0.2': {}
 

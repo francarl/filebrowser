@@ -25,6 +25,8 @@ import "videojs-mobile-ui";
 import "videojs-hotkeys";
 import "video.js/dist/video-js.min.css";
 import "videojs-mobile-ui/dist/videojs-mobile-ui.css";
+import "@theonlyducks/videojs-zoom/styles";
+import "@theonlyducks/videojs-zoom";
 
 const videoPlayer = ref<HTMLElement | null>(null);
 const player = ref<Player | null>(null);
@@ -205,6 +207,14 @@ const initVideoPlayer = async () => {
         controlBar.addChild('zoomOutCustomButton', {});
     }  
 
+    const zoomPlugin = player.value.zoomPlugin({
+      showZoom: true,
+      showMove: true,
+      showRotate: true,
+      gestureHandler: false
+    });
+    zoomPlugin.enablePlugin();
+    
     // TODO: need to test on mobile
     // @ts-expect-error no ts definition for mobileUi
     player.value!.mobileUi();
@@ -231,7 +241,7 @@ const getOptions = (...srcOpt: any[]) => {
         seekStep: 10,
         enableModifiersForNumbers: false,
       },
-      muted: true,
+      muted: true
     },
   };
 
