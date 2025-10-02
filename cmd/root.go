@@ -74,7 +74,7 @@ func addServerFlags(flags *pflag.FlagSet) {
 	flags.Bool("disable-thumbnails", false, "disable image thumbnails")
 	flags.Bool("disable-preview-resize", false, "disable resize of image previews")
 	flags.Bool("disable-exec", true, "disables Command Runner feature")
-	flags.Bool("disable-type-detection-by-header", false, "disables type detection by reading file headers")
+	flags.Bool("disable-type-detection-by-header", true, "disables type detection by reading file headers")
 }
 
 var rootCmd = &cobra.Command{

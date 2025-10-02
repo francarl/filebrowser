@@ -244,19 +244,23 @@ func (i *FileInfo) detectType(modify, saveContent, readHeader bool) error {
 	switch {
 	case strings.HasPrefix(mimetype, "video"):
 		i.Type = "video"
-		// i.detectSubtitles()
+		if readHeader {
+			i.detectSubtitles()
+		}
 		return nil
 	case strings.HasPrefix(mimetype, "audio"):
 		i.Type = "audio"
 		return nil
 	case strings.HasPrefix(mimetype, "image"):
 		i.Type = "image"
-		// resolution, err := calculateImageResolution(i.Fs, i.Path)
-		// if err != nil {
-		// 	log.Printf("Error calculating image resolution: %v", err)
-		// } else {
-		// 	i.Resolution = resolution
-		// }
+		if readHeader {
+			resolution, err := calculateImageResolution(i.Fs, i.Path)
+			if err != nil {
+				log.Printf("Error calculating image resolution: %v", err)
+			} else {
+				i.Resolution = resolution
+			}
+		}
 		return nil
 	case strings.HasSuffix(mimetype, "pdf"):
 		i.Type = "pdf"
@@ -437,14 +441,16 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
 			currentDir: dir,
 		}
 
-		// if !file.IsDir && strings.HasPrefix(mime.TypeByExtension(file.Extension), "image/") {
-		// 	resolution, err := calculateImageResolution(file.Fs, file.Path)
-		// 	if err != nil {
-		// 		log.Printf("Error calculating resolution for image %s: %v", file.Path, err)
-		// 	} else {
-		// 		file.Resolution = resolution
-		// 	}
-		// }
+		if readHeader {
+			if !file.IsDir && strings.HasPrefix(mime.TypeByExtension(file.Extension), "image/") {
+				resolution, err := calculateImageResolution(file.Fs, file.Path)
+				if err != nil {
+					log.Printf("Error calculating resolution for image %s: %v", file.Path, err)
+				} else {
+					file.Resolution = resolution
+				}
+			}
+		}
 
 		if file.IsDir {
 			listing.NumDirs++

@@ -200,18 +200,19 @@ const initVideoPlayer = async () => {
     if (controlBar) {
         // Usa il nome con cui hai registrato il componente (CustomButton)
         console.log("Adding custom button to control bar");
-        controlBar.addChild('rotateCustomButton', {});
+        // controlBar.addChild('rotateCustomButton', {});
         controlBar.addChild('frameByFrameButton', { fps: 30, text: 'arrow_back', value: -1 });
         controlBar.addChild('frameByFrameButton', { fps: 30, text: 'arrow_forward', value: 1 });
-        controlBar.addChild('zoomInCustomButton', {});
-        controlBar.addChild('zoomOutCustomButton', {});
+        // controlBar.addChild('zoomInCustomButton', {});
+        // controlBar.addChild('zoomOutCustomButton', {});
     }  
 
+    // @ts-expect-error no ts definition for zoomPlugin
     const zoomPlugin = player.value.zoomPlugin({
       showZoom: true,
       showMove: true,
       showRotate: true,
-      gestureHandler: false
+      gestureHandler: true
     });
     zoomPlugin.enablePlugin();
     
