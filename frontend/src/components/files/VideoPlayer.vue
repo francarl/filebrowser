@@ -145,6 +145,33 @@ class FrameByFrameButton extends Button {
     }
 }
 
+class DownloadFrameButton extends Button {
+    constructor(player: Player, options?: any) {
+        super(player, options);
+        this.el().innerHTML = '<i class="material-icons">photo_camera</i>';
+    }
+
+    override createEl() {
+        const el = super.createEl("button", {
+            className: "vjs-custom-button",
+        });
+        el.innerHTML = '<i class="material-icons">photo_camera</i>';
+        return el;
+    }
+
+    handleClick() {
+        const video = this.player().tech_.el() as HTMLVideoElement;
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const link = document.createElement("a");
+        link.download = `frame-${this.player().currentTime()}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+    }
+}
 
 /**
  * 2. Registrazione del Componente
@@ -154,6 +181,7 @@ videojs.registerComponent("rotateCustomButton", RotateCustomButton);
 videojs.registerComponent("frameByFrameButton", FrameByFrameButton);
 videojs.registerComponent("zoomInCustomButton", ZoomInCustomButton);
 videojs.registerComponent("zoomOutCustomButton", ZoomOutCustomButton);
+videojs.registerComponent("downloadFrameButton", DownloadFrameButton);
 // --- FINE DEL NUOVO CODICE ---
 
 nextTick(() => {
@@ -203,6 +231,7 @@ const initVideoPlayer = async () => {
         // controlBar.addChild('rotateCustomButton', {});
         controlBar.addChild('frameByFrameButton', { fps: 30, text: 'arrow_back', value: -1 });
         controlBar.addChild('frameByFrameButton', { fps: 30, text: 'arrow_forward', value: 1 });
+        controlBar.addChild('downloadFrameButton', {});
         // controlBar.addChild('zoomInCustomButton', {});
         // controlBar.addChild('zoomOutCustomButton', {});
     }  
