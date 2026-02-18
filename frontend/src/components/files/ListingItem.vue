@@ -290,6 +290,16 @@ const click = (event: Event | KeyboardEvent) => {
 };
 
 const open = () => {
+  let ua = navigator.userAgent.toLowerCase();
+  let isAndroid = ua.indexOf("android") > -1;
+
+  if (props.type === 'video' && isAndroid) {
+    let downloadUrl = window.location.origin.replace("http:", "intent:") + props.url.replace('/files/', '/api/raw/') + "#Intent;action=android.intent.action.VIEW;scheme=http;type=video/mp4;end";
+    window.location.href = downloadUrl;
+    return;
+  }
+  
+
   router.push({ path: props.url });
 };
 
