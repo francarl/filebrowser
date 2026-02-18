@@ -54,6 +54,8 @@ import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
 import { computed, inject, ref } from "vue";
 import { useRouter } from "vue-router";
+import { share as shareApi } from "@/api";
+
 
 const touches = ref<number>(0);
 
@@ -289,12 +291,13 @@ const click = (event: Event | KeyboardEvent) => {
   fileStore.selected.push(props.index);
 };
 
-const open = () => {
+const open = async () => {
   let ua = navigator.userAgent.toLowerCase();
   let isAndroid = ua.indexOf("android") > -1;
 
   if (props.type === 'video' && isAndroid) {
-    let downloadUrl = window.location.origin.replace("http:", "intent:") + props.url.replace('/files/', '/api/raw/') + "#Intent;action=android.intent.action.VIEW;scheme=http;type=video/mp4;end";
+    let res: any = await shareApi.create(props.url, "", "15", "minutes");
+    let downloadUrl = window.location.origin.replace("http:", "intent:") + '/api/public/dl/' + res.hash + "#Intent;action=android.intent.action.VIEW;scheme=http;type=video/mp4;end";
     window.location.href = downloadUrl;
     return;
   }
