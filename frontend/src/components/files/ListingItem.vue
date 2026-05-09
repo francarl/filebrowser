@@ -8,13 +8,6 @@
     @dragover="dragOver"
     @drop="drop"
     @click="itemClick"
-    @mousedown="handleMouseDown"
-    @mouseup="handleMouseUp"
-    @mouseleave="handleMouseLeave"
-    @touchstart="handleTouchStart"
-    @touchend="handleTouchEnd"
-    @touchcancel="handleTouchCancel"
-    @touchmove="handleTouchMove"
     :data-dir="isDir"
     :data-type="type"
     :aria-label="name"
@@ -23,7 +16,7 @@
   >
     <div>
       <img
-        v-if="!readOnly && type === 'image' && isThumbsEnabled"
+        v-if="!readOnly && (type === 'image' || type === 'video') && isThumbsEnabled"
         v-lazy="thumbnailUrl"
       />
       <i v-else class="material-icons"></i>
@@ -54,16 +47,8 @@ import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
 import { computed, inject, ref } from "vue";
 import { useRouter } from "vue-router";
-import { share as shareApi } from "@/api";
-
 
 const touches = ref<number>(0);
-
-const longPressTimer = ref<number | null>(null);
-const longPressTriggered = ref<boolean>(false);
-const longPressDelay = ref<number>(500);
-const startPosition = ref<{ x: number; y: number } | null>(null);
-const moveThreshold = ref<number>(10);
 
 const $showError = inject<IToastError>("$showError")!;
 const router = useRouter();
@@ -224,12 +209,6 @@ const drop = async (event: Event) => {
 };
 
 const itemClick = (event: Event | KeyboardEvent) => {
-  // If long press was triggered, prevent normal click behavior
-  if (longPressTriggered.value) {
-    longPressTriggered.value = false;
-    return;
-  }
-
   if (
     singleClick.value &&
     !(event as KeyboardEvent).ctrlKey &&
@@ -255,7 +234,15 @@ const click = (event: Event | KeyboardEvent) => {
   }
 
   if (fileStore.selected.indexOf(props.index) !== -1) {
-    fileStore.removeSelected(props.index);
+    if (
+      (event as KeyboardEvent).ctrlKey ||
+      (event as KeyboardEvent).metaKey ||
+      fileStore.multiple
+    ) {
+      fileStore.removeSelected(props.index);
+    } else {
+      fileStore.selected = [props.index];
+    }
     return;
   }
 
@@ -281,7 +268,6 @@ const click = (event: Event | KeyboardEvent) => {
   }
 
   if (
-    !singleClick.value &&
     !(event as KeyboardEvent).ctrlKey &&
     !(event as KeyboardEvent).metaKey &&
     !fileStore.multiple
@@ -291,20 +277,10 @@ const click = (event: Event | KeyboardEvent) => {
   fileStore.selected.push(props.index);
 };
 
-const open = async () => {
-  let ua = navigator.userAgent.toLowerCase();
-  let isAndroid = ua.indexOf("android") > -1;
-
-  if (props.type === 'video' && isAndroid) {
-    let res: any = await shareApi.create(props.url, "", "15", "minutes");
-    let downloadUrl = window.location.origin.replace("http:", "intent:") + '/api/public/dl/' + res.hash + "#Intent;action=android.intent.action.VIEW;scheme=http;type=video/mp4;end";
-    window.location.href = downloadUrl;
-    return;
-  }
-  
-
+const open = () => {
   router.push({ path: props.url });
 };
+
 
 const getExtension = (fileName: string): string => {
   const lastDotIndex = fileName.lastIndexOf(".");
@@ -312,77 +288,5 @@ const getExtension = (fileName: string): string => {
     return fileName;
   }
   return fileName.substring(lastDotIndex);
-};
-
-// Long-press helper functions
-const startLongPress = (clientX: number, clientY: number) => {
-  startPosition.value = { x: clientX, y: clientY };
-  longPressTimer.value = window.setTimeout(() => {
-    handleLongPress();
-  }, longPressDelay.value);
-};
-
-const cancelLongPress = () => {
-  if (longPressTimer.value !== null) {
-    window.clearTimeout(longPressTimer.value);
-    longPressTimer.value = null;
-  }
-  startPosition.value = null;
-};
-
-const handleLongPress = () => {
-  if (singleClick.value) {
-    longPressTriggered.value = true;
-    click(new Event("longpress"));
-  }
-  cancelLongPress();
-};
-
-const checkMovement = (clientX: number, clientY: number): boolean => {
-  if (!startPosition.value) return false;
-
-  const deltaX = Math.abs(clientX - startPosition.value.x);
-  const deltaY = Math.abs(clientY - startPosition.value.y);
-
-  return deltaX > moveThreshold.value || deltaY > moveThreshold.value;
-};
-
-// Event handlers
-const handleMouseDown = (event: MouseEvent) => {
-  if (event.button === 0) {
-    startLongPress(event.clientX, event.clientY);
-  }
-};
-
-const handleMouseUp = () => {
-  cancelLongPress();
-};
-
-const handleMouseLeave = () => {
-  cancelLongPress();
-};
-
-const handleTouchStart = (event: TouchEvent) => {
-  if (event.touches.length === 1) {
-    const touch = event.touches[0];
-    startLongPress(touch.clientX, touch.clientY);
-  }
-};
-
-const handleTouchEnd = () => {
-  cancelLongPress();
-};
-
-const handleTouchCancel = () => {
-  cancelLongPress();
-};
-
-const handleTouchMove = (event: TouchEvent) => {
-  if (event.touches.length === 1 && startPosition.value) {
-    const touch = event.touches[0];
-    if (checkMovement(touch.clientX, touch.clientY)) {
-      cancelLongPress();
-    }
-  }
 };
 </script>
