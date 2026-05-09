@@ -232,11 +232,17 @@ const click = (event: Event | KeyboardEvent) => {
   if (touches.value > 1) {
     open();
   }
-};
 
-const handleSingleClick = (event: Event | KeyboardEvent) => {
   if (fileStore.selected.indexOf(props.index) !== -1) {
-    fileStore.removeSelected(props.index);
+    if (
+      (event as KeyboardEvent).ctrlKey ||
+      (event as KeyboardEvent).metaKey ||
+      fileStore.multiple
+    ) {
+      fileStore.removeSelected(props.index);
+    } else {
+      fileStore.selected = [props.index];
+    }
     return;
   }
 
@@ -262,7 +268,6 @@ const handleSingleClick = (event: Event | KeyboardEvent) => {
   }
 
   if (
-    !singleClick.value &&
     !(event as KeyboardEvent).ctrlKey &&
     !(event as KeyboardEvent).metaKey &&
     !fileStore.multiple
@@ -271,7 +276,6 @@ const handleSingleClick = (event: Event | KeyboardEvent) => {
   }
   fileStore.selected.push(props.index);
 };
-
 
 const open = () => {
   router.push({ path: props.url });
