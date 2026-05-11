@@ -299,7 +299,6 @@ const open = () => {
       authStore.jwt +
       "#Intent;action=android.intent.action.VIEW;scheme=http;type=video/mp4;end";
 
-    console.log(rawUrl);
     window.location.href = rawUrl;
     return;
   }
