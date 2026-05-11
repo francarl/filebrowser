@@ -17,7 +17,6 @@
     <div>
       <img
         v-if="!readOnly && (type === 'image' || type === 'video') && isThumbsEnabled"
-        v-if="!readOnly && (type === 'image' || type === 'video') && isThumbsEnabled"
         v-lazy="thumbnailUrl"
       />
       <i v-else class="material-icons"></i>
