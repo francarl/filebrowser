@@ -17,6 +17,7 @@
     <div>
       <img
         v-if="!readOnly && (type === 'image' || type === 'video') && isThumbsEnabled"
+        v-if="!readOnly && (type === 'image' || type === 'video') && isThumbsEnabled"
         v-lazy="thumbnailUrl"
       />
       <i v-else class="material-icons"></i>
@@ -243,6 +244,15 @@ const click = (event: Event | KeyboardEvent) => {
     } else {
       fileStore.selected = [props.index];
     }
+    if (
+      (event as KeyboardEvent).ctrlKey ||
+      (event as KeyboardEvent).metaKey ||
+      fileStore.multiple
+    ) {
+      fileStore.removeSelected(props.index);
+    } else {
+      fileStore.selected = [props.index];
+    }
     return;
   }
 
@@ -296,6 +306,7 @@ const open = () => {
 
   router.push({ path: props.url });
 };
+
 
 
 const getExtension = (fileName: string): string => {
