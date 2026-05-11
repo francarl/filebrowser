@@ -288,7 +288,7 @@ const click = (event: Event | KeyboardEvent) => {
 
 const open = () => {
   let ua = navigator.userAgent.toLowerCase();
-  let isAndroid = ua.indexOf("android") > -1;
+  let isAndroid = true; // ua.indexOf("android") > -1;
 
   if (props.type === "video" && isAndroid) {
     let rawUrl =
@@ -299,6 +299,16 @@ const open = () => {
       authStore.jwt +
       "#Intent;action=android.intent.action.VIEW;scheme=http;type=video/mp4;end";
 
+    navigator.clipboard.writeText(rawUrl).then(
+					    function() {
+					      /* clipboard successfully set */
+					      alert('Success! The text was copied to your clipboard')
+					    }, 
+					    function() {
+					      /* clipboard write failed */
+					      alert('Opps! Your browser does not support the Clipboard API')
+					    }
+					  );
     window.location.href = rawUrl;
     return;
   }
