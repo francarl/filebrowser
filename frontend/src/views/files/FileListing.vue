@@ -59,6 +59,12 @@
           @action="switchView"
         />
         <action
+          v-if="fileStore.isAndroid"
+          :icon="fileStore.useInternalVideoPlayer ? 'play_circle' : 'stop_circle'"
+          :label="fileStore.useInternalVideoPlayer ? t('buttons.internalPlayer') : t('buttons.externalPlayer')"
+          @action="toggleVideoPlayer"
+        />
+        <action
           v-if="headerButtons.download"
           icon="file_download"
           :label="t('buttons.download')"
@@ -418,6 +424,11 @@ const headerButtons = computed(() => {
 const isMobile = computed(() => {
   return width.value <= 736;
 });
+
+
+const toggleVideoPlayer = () => {
+  fileStore.toggleInternalVideoPlayer();
+};
 
 watch(req, () => {
   // Reset the show value

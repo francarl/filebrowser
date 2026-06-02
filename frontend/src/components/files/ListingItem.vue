@@ -287,13 +287,10 @@ const click = (event: Event | KeyboardEvent) => {
 };
 
 const open = () => {
-  let ua = navigator.userAgent.toLowerCase();
-  let isAndroid = ua.indexOf("android") > -1;
-
-  if (props.type === "video" && isAndroid) {
+  if (props.type === "video" && fileStore.isAndroid && !fileStore.useInternalVideoPlayer) {
     let rawUrl =
       window.location.origin
-        .replace("http:", "intent:").replace("https:", "intent:") + 
+        .replace("http:", "intent:").replace("https:", "intent:") +
       props.url.replace("/files/", "/api/raw/") +
       "?auth=" +
       authStore.jwt +

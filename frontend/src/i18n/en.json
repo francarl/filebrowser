@@ -38,6 +38,8 @@
     "shell": "Toggle shell",
     "submit": "Submit",
     "switchView": "Switch view",
+    "internalPlayer": "Internal player",
+    "externalPlayer": "External player",
     "toggleSidebar": "Toggle sidebar",
     "update": "Update",
     "upload": "Upload",
