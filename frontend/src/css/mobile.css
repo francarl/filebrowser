@@ -20,6 +20,9 @@
   #listing.list .item .name {
     width: 60%;
   }
+  #listing.list .item .modified {
+    width: 40%;
+  }
   #more {
     display: inherit;
   }
@@ -161,11 +164,4 @@
   }
 }
 
-@media (max-width: 450px) {
-  #listing.list .item .modified {
-    display: none;
-  }
-  #listing.list .item .name {
-    width: 100%;
-  }
-}
+

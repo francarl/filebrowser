@@ -52,7 +52,7 @@ var defaults = &oldConf{
 	Log:  "stdout",
 	Defaults: oldDefs{
 		Commands:      []string{"git", "svn", "hg"},
-		ViewMode:      string(users.MosaicViewMode),
+		ViewMode:      string(users.ListViewMode),
 		AllowCommands: true,
 		AllowEdit:     true,
 		AllowNew:      true,
