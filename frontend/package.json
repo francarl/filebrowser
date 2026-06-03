@@ -8,7 +8,7 @@
     "pnpm": ">=9.0.0"
   },
   "scripts": {
-    "dev": "vite dev",
+    "dev": "vite dev --host 0.0.0.0",
     "build": "pnpm run typecheck && vite build",
     "clean": "find ./dist -maxdepth 1 -mindepth 1 ! -name '.gitkeep' -exec rm -r {} +",
     "typecheck": "vue-tsc -p ./tsconfig.tsc.json --noEmit",

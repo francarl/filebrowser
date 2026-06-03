@@ -288,14 +288,16 @@ const click = (event: Event | KeyboardEvent) => {
 
 const open = () => {
   if (props.type === "video" && fileStore.isAndroid && !fileStore.useInternalVideoPlayer) {
+    const scheme = window.location.protocol === "https:" ? "https" : "http";
     let rawUrl =
       window.location.origin
-        .replace("http:", "intent:").replace("https:", "intent:") +
+        .replace(`${scheme}:`, "intent:") +
       props.url.replace("/files/", "/api/raw/") +
       "?auth=" +
       authStore.jwt +
-      "#Intent;action=android.intent.action.VIEW;scheme=http;type=video/mp4;end";
+      `#Intent;action=android.intent.action.VIEW;scheme=${scheme};type=video/mp4;end`;
 
+    console.log("Android Intent URL:", rawUrl);
     window.location.href = rawUrl;
     return;
   }
