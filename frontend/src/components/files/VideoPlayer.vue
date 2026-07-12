@@ -25,6 +25,8 @@ import "videojs-mobile-ui";
 import "videojs-hotkeys";
 import "video.js/dist/video-js.min.css";
 import "videojs-mobile-ui/dist/videojs-mobile-ui.css";
+import "@theonlyducks/videojs-zoom/styles";
+import "@theonlyducks/videojs-zoom";
 
 const videoPlayer = ref<HTMLElement | null>(null);
 const player = ref<Player | null>(null);
@@ -42,6 +44,141 @@ const props = withDefaults(
 
 const source = ref(props.source);
 const sourceType = ref("");
+
+// --- INIZIO DEL NUOVO CODICE ---
+const zoomrotate = {
+  rotate: 0,
+  zoom: 1,
+};
+
+const Button = videojs.getComponent("Button");
+
+class ZoomInCustomButton extends Button {
+  constructor(player: Player, options?: any) {
+    super(player, options);
+  }
+
+  override createEl() {
+    const el = super.createEl("button", {
+      className: "vjs-custom-button",
+    });
+    el.innerHTML = '<i class="material-icons">add</i>';
+    return el;
+  }
+
+  handleClick() {
+    const vi = this.player().children()[0];
+
+    zoomrotate.zoom += 0.1;
+    vi.style.transform =
+      "scale(" + zoomrotate.zoom + ") rotate(" + zoomrotate.rotate + "deg)";
+  }
+}
+
+class ZoomOutCustomButton extends Button {
+  constructor(player: Player, options?: any) {
+    super(player, options);
+  }
+
+  override createEl() {
+    const el = super.createEl("button", {
+      className: "vjs-custom-button",
+    });
+    el.innerHTML = '<i class="material-icons">remove</i>';
+    return el;
+  }
+
+  handleClick() {
+    const vi = this.player().children()[0];
+
+    zoomrotate.zoom -= 0.1;
+    vi.style.transform =
+      "scale(" + zoomrotate.zoom + ") rotate(" + zoomrotate.rotate + "deg)";
+  }
+}
+
+class RotateCustomButton extends Button {
+  constructor(player: Player, options?: any) {
+    super(player, options);
+  }
+
+  override createEl() {
+    const el = super.createEl("button", {
+      className: "vjs-custom-button",
+    });
+    el.innerHTML = '<span class="vjs-icon-replay" aria-hidden="true"></span>';
+    return el;
+  }
+
+  handleClick() {
+    const vi = this.player().children()[0];
+    zoomrotate.rotate += 90;
+    vi.style.transform =
+      "scale(" + zoomrotate.zoom + ") rotate(" + zoomrotate.rotate + "deg)";
+  }
+}
+
+class FrameByFrameButton extends Button {
+  p: Player;
+  frameTime: number;
+  stepSize: number;
+
+  constructor(player: Player, options?: any) {
+    super(player, options);
+    this.p = player;
+    this.frameTime = 1 / options.fps;
+    this.stepSize = options.value;
+
+    this.el().innerHTML = `<i class="material-icons">${options.text}</i>`;
+  }
+
+  handleClick() {
+    // Start by pausing the player
+    this.p.pause();
+    // Calculate movement distance
+    const dist = this.frameTime * this.stepSize;
+    this.p.currentTime((this.p.currentTime() || 0) + dist);
+  }
+}
+
+class DownloadFrameButton extends Button {
+  constructor(player: Player, options?: any) {
+    super(player, options);
+    this.el().innerHTML = '<i class="material-icons">photo_camera</i>';
+  }
+
+  override createEl() {
+    const el = super.createEl("button", {
+      className: "vjs-custom-button",
+    });
+    el.innerHTML = '<i class="material-icons">photo_camera</i>';
+    return el;
+  }
+
+  handleClick() {
+    const video = this.player().tech_.el() as HTMLVideoElement;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const link = document.createElement("a");
+    link.download = `frame-${this.player().currentTime()}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  }
+}
+
+/**
+ * 2. Registrazione del Componente
+ */
+// Il nome 'CustomButton' sarà utilizzato per fare riferimento al pulsante nelle opzioni.
+videojs.registerComponent("rotateCustomButton", RotateCustomButton);
+videojs.registerComponent("frameByFrameButton", FrameByFrameButton);
+videojs.registerComponent("zoomInCustomButton", ZoomInCustomButton);
+videojs.registerComponent("zoomOutCustomButton", ZoomOutCustomButton);
+videojs.registerComponent("downloadFrameButton", DownloadFrameButton);
+// --- FINE DEL NUOVO CODICE ---
 
 nextTick(() => {
   initVideoPlayer();
@@ -73,7 +210,7 @@ const initVideoPlayer = async () => {
     //Supporting localized language display.
     const langOpt = { language: code };
     // support for playback at different speeds.
-    const playbackRatesOpt = { playbackRates: [0.5, 1, 1.5, 2, 2.5, 3] };
+    const playbackRatesOpt = { playbackRates: [0.1, 0.2, 0.5, 1.0, 1.5, 2.0] };
     const options = getOptions(
       props.options,
       langOpt,
@@ -81,6 +218,33 @@ const initVideoPlayer = async () => {
       playbackRatesOpt
     );
     player.value = videojs(videoPlayer.value!, options, () => {});
+
+    const controlBar = player.value.getChild("ControlBar");
+    if (controlBar) {
+      // Usa il nome con cui hai registrato il componente (CustomButton)
+      console.log("Adding custom button to control bar");
+      controlBar.addChild("rotateCustomButton", {});
+      controlBar.addChild("frameByFrameButton", {
+        fps: 30,
+        text: "arrow_back",
+        value: -1,
+      });
+      controlBar.addChild("frameByFrameButton", {
+        fps: 30,
+        text: "arrow_forward",
+        value: 1,
+      });
+      controlBar.addChild("downloadFrameButton", {});
+    }
+
+    // @ts-expect-error no ts definition for zoomPlugin
+    const zoomPlugin = player.value.zoomPlugin({
+      showZoom: true,
+      showMove: true,
+      showRotate: true,
+      gestureHandler: true,
+    });
+    zoomPlugin.enablePlugin();
 
     // TODO: need to test on mobile
     // @ts-expect-error no ts definition for mobileUi
@@ -97,6 +261,7 @@ const getOptions = (...srcOpt: any[]) => {
         forward: 5,
         backward: 5,
       },
+      pictureInPictureToggle: false,
     },
     html5: {
       nativeTextTracks: false,
@@ -107,6 +272,7 @@ const getOptions = (...srcOpt: any[]) => {
         seekStep: 10,
         enableModifiersForNumbers: false,
       },
+      muted: true,
     },
   };
 
@@ -182,5 +348,11 @@ const languageImports: LanguageImports = {
 .video-max {
   width: 100%;
   height: 100%;
+}
+
+.vjs-fbf {
+  border: 1px solid white;
+  padding: 2px 3px;
+  border-radius: 2px;
 }
 </style>
