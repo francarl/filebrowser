@@ -91,13 +91,13 @@ func NewFileInfo(opts *FileOptions) (*FileInfo, error) {
 
 	if opts.Expand {
 		if file.IsDir {
-			if err := file.readListing(opts.Checker, opts.ReadHeader, opts.CalcImgRes); err != nil {
+			if err := file.readListing(opts.Checker, opts.ReadHeader); err != nil {
 				return nil, err
 			}
 			return file, nil
 		}
 
-		err = file.detectType(opts.Modify, opts.Content, true, opts.CalcImgRes)
+		err = file.detectType(opts.Modify, opts.Content, true)
 		if err != nil {
 			return nil, err
 		}
@@ -219,7 +219,7 @@ func (i *FileInfo) RealPath() string {
 	return i.Path
 }
 
-func (i *FileInfo) detectType(modify, saveContent, readHeader bool, calcImgRes bool) error {
+func (i *FileInfo) detectType(modify, saveContent, readHeader bool) error {
 	if IsNamedPipe(i.Mode) {
 		i.Type = "blob"
 		return nil
@@ -243,14 +243,16 @@ func (i *FileInfo) detectType(modify, saveContent, readHeader bool, calcImgRes b
 	switch {
 	case strings.HasPrefix(mimetype, "video"):
 		i.Type = "video"
-		i.detectSubtitles()
+		if readHeader {
+			i.detectSubtitles()
+		}
 		return nil
 	case strings.HasPrefix(mimetype, "audio"):
 		i.Type = "audio"
 		return nil
 	case strings.HasPrefix(mimetype, "image"):
 		i.Type = "image"
-		if calcImgRes {
+		if readHeader {
 			resolution, err := calculateImageResolution(i.Fs, i.Path)
 			if err != nil {
 				log.Printf("Error calculating image resolution: %v", err)
@@ -390,10 +392,15 @@ func (i *FileInfo) addSubtitle(fPath string) {
 	i.Subtitles = append(i.Subtitles, fPath)
 }
 
-func (i *FileInfo) readListing(checker rules.Checker, readHeader bool, calcImgRes bool) error {
-	dir, err := readDir(i.Fs, i.Path)
+func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
+
+	afs := &afero.Afero{Fs: i.Fs}
+	dir, err := afs.ReadDir(i.Path)
 	if err != nil {
-		return err
+		dir, err = readDirNames(i.Fs, i.Path)
+		if err != nil {
+			return err
+		}
 	}
 
 	listing := &Listing{
@@ -443,12 +450,14 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool, calcImgRe
 			currentDir: dir,
 		}
 
-		if !file.IsDir && strings.HasPrefix(mime.TypeByExtension(file.Extension), "image/") && calcImgRes {
-			resolution, err := calculateImageResolution(file.Fs, file.Path)
-			if err != nil {
-				log.Printf("Error calculating resolution for image %s: %v", file.Path, err)
-			} else {
-				file.Resolution = resolution
+		if readHeader {
+			if !file.IsDir && strings.HasPrefix(mime.TypeByExtension(file.Extension), "image/") {
+				resolution, err := calculateImageResolution(file.Fs, file.Path)
+				if err != nil {
+					log.Printf("Error calculating resolution for image %s: %v", file.Path, err)
+				} else {
+					file.Resolution = resolution
+				}
 			}
 		}
 
@@ -460,7 +469,7 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool, calcImgRe
 			if isInvalidLink {
 				file.Type = "invalid_link"
 			} else {
-				err := file.detectType(true, false, readHeader, calcImgRes)
+				err := file.detectType(true, false, readHeader)
 				if err != nil {
 					return err
 				}
@@ -472,20 +481,6 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool, calcImgRe
 
 	i.Listing = listing
 	return nil
-}
-
-func readDir(afs afero.Fs, dirname string) ([]os.FileInfo, error) {
-	dir, err := afero.ReadDir(afs, dirname)
-	if err == nil {
-		return dir, nil
-	}
-
-	dir, fallbackErr := readDirNames(afs, dirname)
-	if fallbackErr != nil {
-		return nil, err
-	}
-
-	return dir, nil
 }
 
 func readDirNames(afs afero.Fs, dirname string) ([]os.FileInfo, error) {
@@ -526,3 +521,5 @@ func lstatIfPossible(afs afero.Fs, name string) (os.FileInfo, error) {
 
 	return afs.Stat(name)
 }
+
+
