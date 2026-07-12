@@ -38,6 +38,8 @@
     "shell": "Mostra/nascondi shell",
     "submit": "Invia",
     "switchView": "Cambia vista",
+    "internalPlayer": "Riproduttore interno",
+    "externalPlayer": "Riproduttore esterno",
     "toggleSidebar": "Mostra/nascondi la barra laterale",
     "update": "Aggiorna",
     "upload": "Carica",
