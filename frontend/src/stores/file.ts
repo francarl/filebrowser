@@ -10,6 +10,7 @@ export const useFileStore = defineStore("file", {
     multiple: boolean;
     isFiles: boolean;
     preselect: string | null;
+    useInternalVideoPlayer: boolean;
   } => ({
     req: null,
     oldReq: null,
@@ -18,8 +19,12 @@ export const useFileStore = defineStore("file", {
     multiple: false,
     isFiles: false,
     preselect: null,
+    useInternalVideoPlayer: false,
   }),
   getters: {
+    isAndroid: () => {
+      return navigator.userAgent.toLowerCase().indexOf("android") > -1;
+    },
     selectedCount: (state) => state.selected.length,
     // route: () => {
     //   const routerStore = useRouterStore();
@@ -56,6 +61,9 @@ export const useFileStore = defineStore("file", {
       const i = this.selected.indexOf(value);
       if (i === -1) return;
       this.selected.splice(i, 1);
+    },
+    toggleInternalVideoPlayer() {
+      this.useInternalVideoPlayer = !this.useInternalVideoPlayer;
     },
     // easily reset state using `$reset`
     clearFile() {

@@ -243,7 +243,9 @@ func (i *FileInfo) detectType(modify, saveContent, readHeader bool, calcImgRes b
 	switch {
 	case strings.HasPrefix(mimetype, "video"):
 		i.Type = "video"
-		i.detectSubtitles()
+		if readHeader {
+			i.detectSubtitles()
+		}
 		return nil
 	case strings.HasPrefix(mimetype, "audio"):
 		i.Type = "audio"
