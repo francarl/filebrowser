@@ -11,9 +11,9 @@ importers:
       '@chenfengyuan/vue-number-input':
         specifier: ^2.0.1
         version: 2.0.1(vue@3.5.39(typescript@5.9.3))
-      '@theonlyducks/videojs-zoom':
-        specifier: ^1.3.6
-        version: 1.3.6(video.js@8.23.9)
+      '@douglassllc/videojs-framebyframe':
+        specifier: ^1.2.0
+        version: 1.2.0
       '@vueuse/core':
         specifier: ^14.0.0
         version: 14.3.0(vue@3.5.39(typescript@5.9.3))
@@ -701,6 +701,9 @@ packages:
     peerDependencies:
       vue: ^3.0.0
 
+  '@douglassllc/videojs-framebyframe@1.2.0':
+    resolution: {integrity: sha512-iT5nS5NwxzIZAVtpoBpbV7Gnj6l131MWJ4KoAnVQVnSc6CRSQPckX3/tSxOj6TwJ84WqtjvPxQ+sjrAvMTz5ZA==}
+
   '@emnapi/core@1.11.1':
     resolution: {integrity: sha512-RSvbQmHzdKzNsLYa/wHrbc3KN4sYLKAdPZxqiM2HATqv/SBk2/ENSHpvXGaLOMcsAyz0poEGqkmmKYG3OWiJEQ==}
 
@@ -1131,12 +1134,6 @@ packages:
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
-
-  '@theonlyducks/videojs-zoom@1.3.6':
-    resolution: {integrity: sha512-jj7r9YhU89wgLx5sHKmUUL/FXV/B/RhQehvy/gjEjIyC4atP+jAgr3elZJ9fp86eVg/L9BWiCGHw0lXU4bd9qw==}
-    engines: {node: '>=16.0'}
-    peerDependencies:
-      video.js: '>= ^7 || >= ^8'
 
   '@tsconfig/node24@24.0.4':
     resolution: {integrity: sha512-2A933l5P5oCbv6qSxHs7ckKwobs8BDAe9SJ/Xr2Hy+nDlwmLE1GhFh/g/vXGRZWgxBg9nX/5piDtHR9Dkw/XuA==}
@@ -3495,6 +3492,10 @@ snapshots:
     dependencies:
       vue: 3.5.39(typescript@5.9.3)
 
+  '@douglassllc/videojs-framebyframe@1.2.0':
+    dependencies:
+      video.js: 8.23.9
+
   '@emnapi/core@1.11.1':
     dependencies:
       '@emnapi/wasi-threads': 1.2.2
@@ -3806,10 +3807,6 @@ snapshots:
       picomatch: 4.0.5
 
   '@standard-schema/spec@1.1.0': {}
-
-  '@theonlyducks/videojs-zoom@1.3.6(video.js@8.23.9)':
-    dependencies:
-      video.js: 8.23.9
 
   '@tsconfig/node24@24.0.4': {}
 

@@ -18,15 +18,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, onBeforeUnmount, nextTick } from "vue";
 import videojs from "video.js";
 import type Player from "video.js/dist/types/player";
 import "videojs-mobile-ui";
 import "videojs-hotkeys";
 import "video.js/dist/video-js.min.css";
 import "videojs-mobile-ui/dist/videojs-mobile-ui.css";
-import "@theonlyducks/videojs-zoom/styles";
-import "@theonlyducks/videojs-zoom";
 
 const videoPlayer = ref<HTMLElement | null>(null);
 const player = ref<Player | null>(null);
@@ -45,106 +43,114 @@ const props = withDefaults(
 const source = ref(props.source);
 const sourceType = ref("");
 
-// --- INIZIO DEL NUOVO CODICE ---
 const zoomrotate = {
   rotate: 0,
   zoom: 1,
+  flipH: 1,
+  flipV: 1,
+  panX: 0,
+  panY: 0,
+};
+
+const applyTransform = (el: HTMLElement) => {
+  el.style.transform = `translate(${zoomrotate.panX || 0}px, ${zoomrotate.panY || 0}px) scale(${zoomrotate.zoom}) rotate(${zoomrotate.rotate}deg) scale(${zoomrotate.flipH}, ${zoomrotate.flipV})`;
 };
 
 const Button = videojs.getComponent("Button");
 
-class ZoomInCustomButton extends Button {
+class RotateCustomButton extends Button {
   constructor(player: Player, options?: any) {
     super(player, options);
-  }
-
-  override createEl() {
-    const el = super.createEl("button", {
-      className: "vjs-custom-button",
-    });
-    el.innerHTML = '<i class="material-icons">add</i>';
-    return el;
+    // @ts-expect-error controlText is on Button prototype
+    this.controlText("Rotate +90");
   }
 
   handleClick() {
-    const vi = this.player().children()[0];
+    const vi = this.player().children()[0] as HTMLElement;
+    zoomrotate.rotate += 90;
+    applyTransform(vi);
+  }
 
+  override buildCSSClass() {
+    return "vjs-icon-replay vjs-control vjs-button";
+  }
+}
+
+class ZoomInCustomButton extends Button {
+  constructor(player: Player, options?: any) {
+    super(player, options);
+    // @ts-expect-error controlText is on Button prototype
+    this.controlText("Zoom in");
+  }
+
+  handleClick() {
+    const vi = this.player().children()[0] as HTMLElement;
     zoomrotate.zoom += 0.1;
-    vi.style.transform =
-      "scale(" + zoomrotate.zoom + ") rotate(" + zoomrotate.rotate + "deg)";
+    applyTransform(vi);
+  }
+
+  override buildCSSClass() {
+    return "vjs-icon-circle vjs-control vjs-button";
   }
 }
 
 class ZoomOutCustomButton extends Button {
   constructor(player: Player, options?: any) {
     super(player, options);
-  }
-
-  override createEl() {
-    const el = super.createEl("button", {
-      className: "vjs-custom-button",
-    });
-    el.innerHTML = '<i class="material-icons">remove</i>';
-    return el;
+    // @ts-expect-error controlText is on Button prototype
+    this.controlText("Zoom out");
   }
 
   handleClick() {
-    const vi = this.player().children()[0];
-
+    const vi = this.player().children()[0] as HTMLElement;
     zoomrotate.zoom -= 0.1;
-    vi.style.transform =
-      "scale(" + zoomrotate.zoom + ") rotate(" + zoomrotate.rotate + "deg)";
+    applyTransform(vi);
+  }
+
+  override buildCSSClass() {
+    return "vjs-icon-circle-outline vjs-control vjs-button";
   }
 }
 
-class RotateCustomButton extends Button {
+class FlipHCustomButton extends Button {
   constructor(player: Player, options?: any) {
     super(player, options);
-  }
-
-  override createEl() {
-    const el = super.createEl("button", {
-      className: "vjs-custom-button",
-    });
-    el.innerHTML = '<span class="vjs-icon-replay" aria-hidden="true"></span>';
-    return el;
+    // @ts-expect-error controlText is on Button prototype
+    this.controlText("Flip H");
   }
 
   handleClick() {
-    const vi = this.player().children()[0];
-    zoomrotate.rotate += 90;
-    vi.style.transform =
-      "scale(" + zoomrotate.zoom + ") rotate(" + zoomrotate.rotate + "deg)";
+    const vi = this.player().children()[0] as HTMLElement;
+    zoomrotate.flipH *= -1;
+    applyTransform(vi);
+  }
+
+  override buildCSSClass() {
+    return "vjs-icon-fliph vjs-control vjs-button";
   }
 }
 
-class FrameByFrameButton extends Button {
-  p: Player;
-  frameTime: number;
-  stepSize: number;
-
+class FlipVCustomButton extends Button {
   constructor(player: Player, options?: any) {
     super(player, options);
-    this.p = player;
-    this.frameTime = 1 / options.fps;
-    this.stepSize = options.value;
-
-    this.el().innerHTML = `<i class="material-icons">${options.text}</i>`;
+    // @ts-expect-error controlText is on Button prototype
+    this.controlText("Flip V");
   }
 
   handleClick() {
-    // Start by pausing the player
-    this.p.pause();
-    // Calculate movement distance
-    const dist = this.frameTime * this.stepSize;
-    this.p.currentTime((this.p.currentTime() || 0) + dist);
+    const vi = this.player().children()[0] as HTMLElement;
+    zoomrotate.flipV *= -1;
+    applyTransform(vi);
+  }
+
+  override buildCSSClass() {
+    return "vjs-icon-flipv vjs-control vjs-button";
   }
 }
 
 class DownloadFrameButton extends Button {
   constructor(player: Player, options?: any) {
     super(player, options);
-    this.el().innerHTML = '<i class="material-icons">photo_camera</i>';
   }
 
   override createEl() {
@@ -169,22 +175,175 @@ class DownloadFrameButton extends Button {
   }
 }
 
-/**
- * 2. Registrazione del Componente
- */
-// Il nome 'CustomButton' sarà utilizzato per fare riferimento al pulsante nelle opzioni.
+class FrameBackButton extends Button {
+  constructor(player: Player, options?: any) {
+    super(player, options);
+  }
+
+  override createEl() {
+    const el = super.createEl("button", {
+      className: "vjs-custom-button",
+    });
+    el.innerHTML = '<span class="vjs-fbf">&lt;</span>';
+    return el;
+  }
+
+  handleClick() {
+    this.player().pause();
+    this.player().currentTime(this.player().currentTime() - 1 / 60);
+  }
+}
+
+class FrameForwardButton extends Button {
+  constructor(player: Player, options?: any) {
+    super(player, options);
+  }
+
+  override createEl() {
+    const el = super.createEl("button", {
+      className: "vjs-custom-button",
+    });
+    el.innerHTML = '<span class="vjs-fbf">&gt;</span>';
+    return el;
+  }
+
+  handleClick() {
+    this.player().pause();
+    this.player().currentTime(this.player().currentTime() + 1 / 60);
+  }
+}
+
+class ResetTransformButton extends Button {
+  constructor(player: Player, options?: any) {
+    super(player, options);
+    // @ts-expect-error controlText is on Button prototype
+    this.controlText("Reset transform");
+  }
+
+  handleClick() {
+    zoomrotate.rotate = 0;
+    zoomrotate.zoom = 1;
+    zoomrotate.flipH = 1;
+    zoomrotate.flipV = 1;
+    zoomrotate.panX = 0;
+    zoomrotate.panY = 0;
+    const vi = this.player().children()[0] as HTMLElement;
+    applyTransform(vi);
+  }
+
+  override buildCSSClass() {
+    return "vjs-icon-replay vjs-control vjs-button";
+  }
+}
+
+interface TouchState {
+  startX: number;
+  startY: number;
+  startPanX: number;
+  startPanY: number;
+  startDist: number;
+  startZoom: number;
+  active: boolean;
+}
+
+let touchState: TouchState | null = null;
+
+const getTouchDistance = (touches: TouchList) => {
+  if (touches.length < 2) return 0;
+  const dx = touches[0].clientX - touches[1].clientX;
+  const dy = touches[0].clientY - touches[1].clientY;
+  return Math.sqrt(dx * dx + dy * dy);
+};
+
+const getTouchCenter = (touches: TouchList) => {
+  return {
+    x: (touches[0].clientX + touches[1].clientX) / 2,
+    y: (touches[0].clientY + touches[1].clientY) / 2,
+  };
+};
+
+const setupTouchListeners = (techEl: HTMLElement) => {
+  techEl.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const center = getTouchCenter(e.touches);
+      touchState = {
+        startX: center.x,
+        startY: center.y,
+        startPanX: zoomrotate.panX,
+        startPanY: zoomrotate.panY,
+        startDist: getTouchDistance(e.touches),
+        startZoom: zoomrotate.zoom,
+        active: true,
+      };
+    } else if (e.touches.length === 1) {
+      touchState = {
+        startX: e.touches[0].clientX,
+        startY: e.touches[0].clientY,
+        startPanX: zoomrotate.panX,
+        startPanY: zoomrotate.panY,
+        startDist: 0,
+        startZoom: zoomrotate.zoom,
+        active: true,
+      };
+    }
+  }, { passive: false });
+
+  techEl.addEventListener('touchmove', (e) => {
+    if (!touchState?.active) return;
+    e.preventDefault();
+
+    if (e.touches.length === 2) {
+      const dist = getTouchDistance(e.touches);
+      const center = getTouchCenter(e.touches);
+      const scale = dist / touchState.startDist;
+      const newZoom = Math.max(0.5, Math.min(5, touchState.startZoom * scale));
+      const deltaPanX = center.x - touchState.startX;
+      const deltaPanY = center.y - touchState.startY;
+      zoomrotate.zoom = newZoom;
+      zoomrotate.panX = touchState.startPanX + deltaPanX * 0.5;
+      zoomrotate.panY = touchState.startPanY + deltaPanY * 0.5;
+      const vi = player.value!.children()[0] as HTMLElement;
+      applyTransform(vi);
+    } else if (e.touches.length === 1) {
+      const deltaPanX = e.touches[0].clientX - touchState.startX;
+      const deltaPanY = e.touches[0].clientY - touchState.startY;
+      zoomrotate.panX = touchState.startPanX + deltaPanX * 0.5;
+      zoomrotate.panY = touchState.startPanY + deltaPanY * 0.5;
+      const vi = player.value!.children()[0] as HTMLElement;
+      applyTransform(vi);
+    }
+  }, { passive: false });
+
+  techEl.addEventListener('touchend', () => {
+    touchState = null;
+  });
+
+  techEl.addEventListener('wheel', (e) => {
+    if (e.ctrlKey) {
+      e.preventDefault();
+      const delta = -e.deltaY * 0.001;
+      const newZoom = Math.max(0.5, Math.min(5, zoomrotate.zoom + delta * zoomrotate.zoom));
+      zoomrotate.zoom = newZoom;
+      const vi = player.value!.children()[0] as HTMLElement;
+      applyTransform(vi);
+    }
+  }, { passive: false });
+};
+
 videojs.registerComponent("rotateCustomButton", RotateCustomButton);
-videojs.registerComponent("frameByFrameButton", FrameByFrameButton);
 videojs.registerComponent("zoomInCustomButton", ZoomInCustomButton);
 videojs.registerComponent("zoomOutCustomButton", ZoomOutCustomButton);
+videojs.registerComponent("flipHCustomButton", FlipHCustomButton);
+videojs.registerComponent("flipVCustomButton", FlipVCustomButton);
 videojs.registerComponent("downloadFrameButton", DownloadFrameButton);
-// --- FINE DEL NUOVO CODICE ---
+videojs.registerComponent("frameBackButton", FrameBackButton);
+videojs.registerComponent("frameForwardButton", FrameForwardButton);
+videojs.registerComponent("resetTransformButton", ResetTransformButton);
 
 nextTick(() => {
   initVideoPlayer();
 });
-
-onMounted(() => {});
 
 onBeforeUnmount(() => {
   if (player.value) {
@@ -203,64 +362,67 @@ const initVideoPlayer = async () => {
     videojs.addLanguage(code, languagePack.default);
     sourceType.value = "";
 
-    //
     sourceType.value = getSourceType(source.value);
 
     const srcOpt = { sources: { src: props.source, type: sourceType.value } };
-    //Supporting localized language display.
     const langOpt = { language: code };
-    // support for playback at different speeds.
-    const playbackRatesOpt = { playbackRates: [0.1, 0.2, 0.5, 1.0, 1.5, 2.0] };
+    const playbackRatesOpt = { playbackRates: [0.1, 0.2, 0.3, 0.4, 0.5, 0.8, 1.0, 1.5, 2.0, 4.0, 8.0] };
     const options = getOptions(
       props.options,
       langOpt,
       srcOpt,
       playbackRatesOpt
     );
-    player.value = videojs(videoPlayer.value!, options, () => {});
-
-    const controlBar = player.value.getChild("ControlBar");
-    if (controlBar) {
-      // Usa il nome con cui hai registrato il componente (CustomButton)
-      console.log("Adding custom button to control bar");
-      controlBar.addChild("rotateCustomButton", {});
-      controlBar.addChild("frameByFrameButton", {
-        fps: 30,
-        text: "arrow_back",
-        value: -1,
-      });
-      controlBar.addChild("frameByFrameButton", {
-        fps: 30,
-        text: "arrow_forward",
-        value: 1,
-      });
-      controlBar.addChild("downloadFrameButton", {});
-    }
-
-    // @ts-expect-error no ts definition for zoomPlugin
-    const zoomPlugin = player.value.zoomPlugin({
-      showZoom: true,
-      showMove: true,
-      showRotate: true,
-      gestureHandler: true,
+    player.value = videojs(videoPlayer.value!, options, () => {
+      onPlayerReady();
     });
-    zoomPlugin.enablePlugin();
-
-    // TODO: need to test on mobile
-    // @ts-expect-error no ts definition for mobileUi
-    player.value!.mobileUi();
   } catch (error) {
     console.error("Error initializing video player:", error);
   }
 };
 
+const onPlayerReady = () => {
+  const controlBar = player.value!.getChild("ControlBar");
+  if (controlBar) {
+    controlBar.addChild("rotateCustomButton", {});
+    controlBar.addChild("zoomInCustomButton", {});
+    controlBar.addChild("zoomOutCustomButton", {});
+    controlBar.addChild("flipHCustomButton", {});
+    controlBar.addChild("flipVCustomButton", {});
+    controlBar.addChild("downloadFrameButton", {});
+    controlBar.addChild("frameBackButton", {});
+    controlBar.addChild("frameForwardButton", {});
+    controlBar.addChild("resetTransformButton", {});
+  }
+
+  const techEl = player.value!.tech({ el: () => videoPlayer.value! })?.el();
+  if (techEl) {
+    setupTouchListeners(techEl);
+  }
+
+  player.value!.on('loadedmetadata', () => {
+    const videoTech = player.value!.tech({ el: () => videoPlayer.value! })?.el() as HTMLVideoElement;
+    if (videoTech) {
+      if (videoTech.videoHeight > videoTech.videoWidth) {
+        zoomrotate.zoom = videoTech.videoHeight / videoTech.videoWidth;
+        zoomrotate.rotate = -90;
+      } else {
+        zoomrotate.zoom = 1;
+        zoomrotate.rotate = 0;
+      }
+      applyTransform(videoTech);
+    }
+  });
+
+  // TODO: need to test on mobile
+  // @ts-expect-error mobileUi is a custom plugin
+  player.value!.mobileUi();
+};
+
 const getOptions = (...srcOpt: any[]) => {
   const options = {
     controlBar: {
-      skipButtons: {
-        forward: 5,
-        backward: 5,
-      },
+      skipButtons: false,
       pictureInPictureToggle: false,
     },
     html5: {
@@ -271,6 +433,43 @@ const getOptions = (...srcOpt: any[]) => {
         volumeStep: 0.1,
         seekStep: 10,
         enableModifiersForNumbers: false,
+        shortcuts: {
+          'alt+r': () => {
+            const vi = player.value!.children()[0] as HTMLElement;
+            zoomrotate.rotate += 90;
+            applyTransform(vi);
+          },
+          'alt+z': () => {
+            const vi = player.value!.children()[0] as HTMLElement;
+            zoomrotate.zoom += 0.1;
+            applyTransform(vi);
+          },
+          'alt+x': () => {
+            const vi = player.value!.children()[0] as HTMLElement;
+            zoomrotate.zoom -= 0.1;
+            applyTransform(vi);
+          },
+          'n': () => {
+            const ct = player.value!.currentTime() || 0;
+            player.value!.currentTime(ct - 10);
+            player.value!.play();
+          },
+          'm': () => {
+            const ct = player.value!.currentTime() || 0;
+            player.value!.currentTime(ct + 10);
+            player.value!.play();
+          },
+          'k': () => {
+            player.value!.pause();
+            const ct = player.value!.currentTime() || 0;
+            player.value!.currentTime(ct - 1 / 60);
+          },
+          'l': () => {
+            player.value!.pause();
+            const ct = player.value!.currentTime() || 0;
+            player.value!.currentTime(ct + 1 / 60);
+          },
+        },
       },
       muted: true,
     },
@@ -279,7 +478,6 @@ const getOptions = (...srcOpt: any[]) => {
   return videojs.obj.merge(options, ...srcOpt);
 };
 
-//  Attempting to fix the issue of being unable to play .MKV format video files
 const getSourceType = (source: string) => {
   const fileExtension = source ? source.split("?")[0].split(".").pop() : "";
   if (fileExtension?.toLowerCase() === "mkv") {
@@ -293,8 +491,6 @@ const subLabel = (subUrl: string) => {
   try {
     url = new URL(subUrl);
   } catch {
-    // treat it as a relative url
-    // we only need this for filename
     url = new URL(subUrl, window.location.origin);
   }
 
@@ -349,7 +545,10 @@ const languageImports: LanguageImports = {
   width: 100%;
   height: 100%;
 }
-
+</style>
+<style>
+.vjs-icon-fliph:before { content: '\21D4'; font-size: 1.3em; }
+.vjs-icon-flipv:before { content: '\21D5'; font-size: 1.3em; }
 .vjs-fbf {
   border: 1px solid white;
   padding: 2px 3px;
