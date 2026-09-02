@@ -214,6 +214,8 @@ main .spinner .bounce2 {
 #previewer .preview {
   text-align: center;
   height: 100%;
+  z-index: 1;
+  position: relative;
 }
 
 #previewer .preview pre {
@@ -292,6 +294,7 @@ main .spinner .bounce2 {
   margin: 0;
   padding: 0;
   transition: 0.2s ease all;
+  z-index: 19999;
 }
 
 #previewer > button.hidden {
