@@ -11,9 +11,6 @@ importers:
       '@chenfengyuan/vue-number-input':
         specifier: ^2.0.1
         version: 2.0.1(vue@3.5.39(typescript@5.9.3))
-      '@douglassllc/videojs-framebyframe':
-        specifier: ^1.2.0
-        version: 1.2.0
       '@vueuse/core':
         specifier: ^14.0.0
         version: 14.3.0(vue@3.5.39(typescript@5.9.3))
@@ -700,9 +697,6 @@ packages:
     resolution: {integrity: sha512-/jqmfmFulFOGlozts0Sf2GCESMRYVTfZZSz2Tf4n9O5DKjqMi5B/MfRzm5H5A57WuG3L80yXFWFN+XeACKaIhQ==}
     peerDependencies:
       vue: ^3.0.0
-
-  '@douglassllc/videojs-framebyframe@1.2.0':
-    resolution: {integrity: sha512-iT5nS5NwxzIZAVtpoBpbV7Gnj6l131MWJ4KoAnVQVnSc6CRSQPckX3/tSxOj6TwJ84WqtjvPxQ+sjrAvMTz5ZA==}
 
   '@emnapi/core@1.11.1':
     resolution: {integrity: sha512-RSvbQmHzdKzNsLYa/wHrbc3KN4sYLKAdPZxqiM2HATqv/SBk2/ENSHpvXGaLOMcsAyz0poEGqkmmKYG3OWiJEQ==}
@@ -3491,10 +3485,6 @@ snapshots:
   '@chenfengyuan/vue-number-input@2.0.1(vue@3.5.39(typescript@5.9.3))':
     dependencies:
       vue: 3.5.39(typescript@5.9.3)
-
-  '@douglassllc/videojs-framebyframe@1.2.0':
-    dependencies:
-      video.js: 8.23.9
 
   '@emnapi/core@1.11.1':
     dependencies:
