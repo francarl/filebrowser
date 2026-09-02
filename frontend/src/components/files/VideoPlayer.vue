@@ -189,8 +189,9 @@ class FrameBackButton extends Button {
   }
 
   handleClick() {
-    this.player().pause();
-    this.player().currentTime(this.player().currentTime() - 1 / 60);
+    const p = this.player()!;
+    p.pause();
+    p.currentTime(p.currentTime()! - 1 / 60);
   }
 }
 
@@ -208,8 +209,9 @@ class FrameForwardButton extends Button {
   }
 
   handleClick() {
-    this.player().pause();
-    this.player().currentTime(this.player().currentTime() + 1 / 60);
+    const p = this.player()!;
+    p.pause();
+    p.currentTime(p.currentTime()! + 1 / 60);
   }
 }
 
@@ -395,7 +397,7 @@ const onPlayerReady = () => {
     controlBar.addChild("resetTransformButton", {});
   }
 
-  const techEl = player.value!.tech({ el: () => videoPlayer.value! })?.el();
+  const techEl = player.value!.tech({ el: () => videoPlayer.value! })?.el() as HTMLElement | undefined;
   if (techEl) {
     setupTouchListeners(techEl);
   }
