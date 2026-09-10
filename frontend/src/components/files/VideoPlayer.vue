@@ -66,7 +66,7 @@ class RotateCustomButton extends Button {
   }
 
   handleClick() {
-    const vi = this.player().children()[0] as HTMLElement;
+    const vi = this.player().tech().el() as HTMLVideoElement;
     zoomrotate.rotate += 90;
     applyTransform(vi);
   }
@@ -84,7 +84,7 @@ class ZoomInCustomButton extends Button {
   }
 
   handleClick() {
-    const vi = this.player().children()[0] as HTMLElement;
+    const vi = this.player().tech().el() as HTMLVideoElement;
     zoomrotate.zoom += 0.1;
     applyTransform(vi);
   }
@@ -102,7 +102,7 @@ class ZoomOutCustomButton extends Button {
   }
 
   handleClick() {
-    const vi = this.player().children()[0] as HTMLElement;
+    const vi = this.player().tech().el() as HTMLVideoElement;
     zoomrotate.zoom -= 0.1;
     applyTransform(vi);
   }
@@ -120,7 +120,7 @@ class FlipHCustomButton extends Button {
   }
 
   handleClick() {
-    const vi = this.player().children()[0] as HTMLElement;
+    const vi = this.player().tech().el() as HTMLVideoElement;
     zoomrotate.flipH *= -1;
     applyTransform(vi);
   }
@@ -138,7 +138,7 @@ class FlipVCustomButton extends Button {
   }
 
   handleClick() {
-    const vi = this.player().children()[0] as HTMLElement;
+    const vi = this.player().tech().el() as HTMLVideoElement;
     zoomrotate.flipV *= -1;
     applyTransform(vi);
   }
@@ -229,7 +229,7 @@ class ResetTransformButton extends Button {
     zoomrotate.flipV = 1;
     zoomrotate.panX = 0;
     zoomrotate.panY = 0;
-    const vi = this.player().children()[0] as HTMLElement;
+    const vi = this.player().tech().el() as HTMLVideoElement;
     applyTransform(vi);
   }
 
@@ -305,14 +305,14 @@ const setupTouchListeners = (techEl: HTMLElement) => {
       zoomrotate.zoom = newZoom;
       zoomrotate.panX = touchState.startPanX + deltaPanX * 0.5;
       zoomrotate.panY = touchState.startPanY + deltaPanY * 0.5;
-      const vi = player.value!.children()[0] as HTMLElement;
+      const vi = player.value!.tech().el() as HTMLVideoElement;
       applyTransform(vi);
     } else if (e.touches.length === 1) {
       const deltaPanX = e.touches[0].clientX - touchState.startX;
       const deltaPanY = e.touches[0].clientY - touchState.startY;
       zoomrotate.panX = touchState.startPanX + deltaPanX * 0.5;
       zoomrotate.panY = touchState.startPanY + deltaPanY * 0.5;
-      const vi = player.value!.children()[0] as HTMLElement;
+      const vi = player.value!.tech().el() as HTMLVideoElement;
       applyTransform(vi);
     }
   }, { passive: false });
@@ -327,10 +327,43 @@ const setupTouchListeners = (techEl: HTMLElement) => {
       const delta = -e.deltaY * 0.001;
       const newZoom = Math.max(0.5, Math.min(5, zoomrotate.zoom + delta * zoomrotate.zoom));
       zoomrotate.zoom = newZoom;
-      const vi = player.value!.children()[0] as HTMLElement;
+      const vi = player.value!.tech().el() as HTMLVideoElement;
       applyTransform(vi);
     }
   }, { passive: false });
+
+  let mouseDown = false;
+  let mouseDragging = false;
+  let mouseDownX = 0;
+  let mouseDownY = 0;
+
+  techEl.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    mouseDown = true;
+    mouseDragging = false;
+    mouseDownX = e.clientX;
+    mouseDownY = e.clientY;
+  });
+
+  techEl.addEventListener('mousemove', (e) => {
+    if (!mouseDown) return;
+    const dx = e.clientX - mouseDownX;
+    const dy = e.clientY - mouseDownY;
+    if (!mouseDragging && Math.abs(dx) + Math.abs(dy) < 4) return;
+    mouseDragging = true;
+    e.preventDefault();
+    zoomrotate.panX += dx;
+    zoomrotate.panY += dy;
+    mouseDownX = e.clientX;
+    mouseDownY = e.clientY;
+    applyTransform(techEl);
+  });
+
+  const endMouseDrag = () => {
+    mouseDown = false;
+  };
+  techEl.addEventListener('mouseup', endMouseDrag);
+  techEl.addEventListener('mouseleave', endMouseDrag);
 };
 
 videojs.registerComponent("rotateCustomButton", RotateCustomButton);
@@ -437,17 +470,17 @@ const getOptions = (...srcOpt: any[]) => {
         enableModifiersForNumbers: false,
         shortcuts: {
           'alt+r': () => {
-            const vi = player.value!.children()[0] as HTMLElement;
+            const vi = player.value!.tech().el() as HTMLVideoElement;
             zoomrotate.rotate += 90;
             applyTransform(vi);
           },
           'alt+z': () => {
-            const vi = player.value!.children()[0] as HTMLElement;
+            const vi = player.value!.tech().el() as HTMLVideoElement;
             zoomrotate.zoom += 0.1;
             applyTransform(vi);
           },
           'alt+x': () => {
-            const vi = player.value!.children()[0] as HTMLElement;
+            const vi = player.value!.tech().el() as HTMLVideoElement;
             zoomrotate.zoom -= 0.1;
             applyTransform(vi);
           },
