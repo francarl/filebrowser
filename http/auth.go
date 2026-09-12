@@ -42,6 +42,8 @@ type userInfo struct {
 type authToken struct {
 	User userInfo `json:"user"`
 	jwt.RegisteredClaims
+	// RawPath scopes the token to a single raw file; empty for session tokens.
+	RawPath string `json:"raw_path,omitempty"`
 }
 
 type extractor []string
@@ -146,6 +148,9 @@ func withUser(fn handleFunc) handleFunc {
 		}
 
 		canonicalizeRequestPath(r)
+		if tk.RawPath != "" && tk.RawPath != r.URL.Path {
+			return http.StatusForbidden, nil
+		}
 		return fn(w, r, d)
 	}
 }
@@ -179,7 +184,7 @@ func loginHandler(tokenExpireTime time.Duration) handleFunc {
 			return http.StatusInternalServerError, err
 		}
 
-		return printToken(w, r, d, user, tokenExpireTime)
+		return printToken(w, r, d, user, tokenExpireTime, "")
 	}
 }
 
@@ -252,11 +257,11 @@ var signupHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, 
 func renewHandler(tokenExpireTime time.Duration) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		w.Header().Set("X-Renew-Token", "false")
-		return printToken(w, r, d, d.user, tokenExpireTime)
+		return printToken(w, r, d, d.user, tokenExpireTime, "")
 	})
 }
 
-func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.User, tokenExpirationTime time.Duration) (int, error) {
+func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.User, tokenExpirationTime time.Duration, rawPath string) (int, error) {
 	claims := &authToken{
 		User: userInfo{
 			ID:                    user.ID,
@@ -277,6 +282,7 @@ func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.Use
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenExpirationTime)),
 			Issuer:    "File Browser",
 		},
+		RawPath: rawPath,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
