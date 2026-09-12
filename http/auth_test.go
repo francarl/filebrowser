@@ -149,3 +149,33 @@ func TestExpiredTokenNeedsProxyAssertion(t *testing.T) {
 		}
 	})
 }
+
+// External video players (Android intent URLs) cannot set headers, so they
+// pass the JWT as ?auth=. The extractor must accept it on GET only.
+func TestExtractorQueryToken(t *testing.T) {
+	key := []byte("test-signing-key")
+	token := signToken(t, users.Permissions{Download: true}, key)
+	e := &extractor{}
+
+	t.Run("GET query param is accepted", func(t *testing.T) {
+		req, _ := http.NewRequest(http.MethodGet, "/api/raw/a.mp4?auth="+token, http.NoBody)
+		got, err := e.ExtractToken(req)
+		if err != nil || got != token {
+			t.Fatalf("ExtractToken = %q, %v; want query token", got, err)
+		}
+	})
+
+	t.Run("non-GET query param is ignored", func(t *testing.T) {
+		req, _ := http.NewRequest(http.MethodPost, "/api/raw/a.mp4?auth="+token, http.NoBody)
+		if got, err := e.ExtractToken(req); err == nil {
+			t.Fatalf("ExtractToken = %q; want no token on POST", got)
+		}
+	})
+
+	t.Run("garbage query param is ignored", func(t *testing.T) {
+		req, _ := http.NewRequest(http.MethodGet, "/api/raw/a.mp4?auth=garbage", http.NoBody)
+		if got, err := e.ExtractToken(req); err == nil {
+			t.Fatalf("ExtractToken = %q; want no token for garbage", got)
+		}
+	})
+}

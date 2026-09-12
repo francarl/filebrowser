@@ -61,6 +61,13 @@ func (e extractor) ExtractToken(r *http.Request) (string, error) {
 		if cookie != nil && strings.Count(cookie.Value, ".") == 2 {
 			return cookie.Value, nil
 		}
+
+		// ponytail: query token for external players (Android intent URLs
+		// can't set headers); token-in-URL can leak into proxy logs, GET-only
+		// keeps the exposure bounded.
+		if q := r.URL.Query().Get("auth"); q != "" && strings.Count(q, ".") == 2 {
+			return q, nil
+		}
 	}
 
 	return "", request.ErrNoTokenInRequest
