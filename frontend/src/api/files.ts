@@ -208,6 +208,14 @@ export async function checksum(url: string, algo: ChecksumAlg) {
   return (await data.json()).checksums[algo];
 }
 
+export async function playbackToken(path: string): Promise<string> {
+  const res = await fetchURL(
+    `/api/playback-token?path=${encodeURIComponent(path)}`,
+    {}
+  );
+  return res.text();
+}
+
 export function getDownloadURL(file: ResourceItem, inline: any) {
   const params = {
     ...(inline && { inline: "true" }),

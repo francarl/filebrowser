@@ -317,23 +317,26 @@ const click = (event: Event | KeyboardEvent) => {
   fileStore.selected.push(props.index);
 };
 
-const open = () => {
+const open = async () => {
   if (
     props.type === "video" &&
     fileStore.isAndroid &&
     !fileStore.useInternalVideoPlayer
   ) {
-    const scheme = window.location.protocol === "https:" ? "https" : "http";
-    const rawUrl =
-      window.location.origin.replace(`${scheme}:`, "intent:") +
-      props.url.replace("/files/", "/api/raw/") +
-      "?auth=" +
-      authStore.jwt +
-      `#Intent;action=android.intent.action.VIEW;scheme=${scheme};type=video/mp4;end`;
-
-    console.log("Android Intent URL:", rawUrl);
-    window.location.href = rawUrl;
-    return;
+    try {
+      const token = await api.playbackToken(props.url.replace("/files/", ""));
+      const scheme = window.location.protocol === "https:" ? "https" : "http";
+      const rawUrl =
+        window.location.origin.replace(`${scheme}:`, "intent:") +
+        props.url.replace("/files/", "/api/raw/") +
+        "?auth=" +
+        token +
+        `#Intent;action=android.intent.action.VIEW;scheme=${scheme};type=video/mp4;end`;
+      window.location.href = rawUrl;
+      return;
+    } catch {
+      // playback token unavailable: fall back to the internal player
+    }
   }
 
   router.push({ path: props.url });
