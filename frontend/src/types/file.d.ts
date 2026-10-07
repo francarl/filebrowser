@@ -20,6 +20,7 @@ interface Resource extends ResourceBase {
   token?: string;
   index: number;
   subtitles?: string[];
+  thumbnails?: Thumbnails;
   content?: string;
   rawContent?: ArrayBuffer;
 }
@@ -27,6 +28,12 @@ interface Resource extends ResourceBase {
 interface ResourceItem extends ResourceBase {
   index: number;
   subtitles?: string[];
+  thumbnails?: Thumbnails;
+}
+
+interface Thumbnails {
+  vtt: string;
+  sprite: string;
 }
 
 type ResourceType =

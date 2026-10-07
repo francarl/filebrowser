@@ -241,6 +241,21 @@ export function getSubtitlesURL(file: ResourceItem) {
   return file.subtitles?.map((d) => createURL("api/subtitle" + d, params));
 }
 
+export function getThumbnailsURL(file: ResourceItem) {
+  const params = {
+    inline: "true",
+  };
+
+  if (!file.thumbnails) {
+    return undefined;
+  }
+
+  return {
+    vtt: createURL("api/raw" + file.thumbnails.vtt, params),
+    sprite: createURL("api/raw" + file.thumbnails.sprite, params),
+  };
+}
+
 export async function usage(url: string, signal: AbortSignal) {
   url = removePrefix(url);
 

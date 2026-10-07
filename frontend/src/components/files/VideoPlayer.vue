@@ -33,6 +33,7 @@ const props = withDefaults(
   defineProps<{
     source: string;
     subtitles?: string[];
+    thumbnails?: { vtt: string; sprite: string };
     options?: any;
   }>(),
   {
@@ -399,6 +400,14 @@ const initVideoPlayer = async () => {
 
     sourceType.value = getSourceType(source.value);
 
+    if (props.thumbnails) {
+      // The plugin is a legacy IIFE that expects window.videojs, so it must
+      // be loaded dynamically after exposing the global.
+      (window as any).videojs = videojs;
+      await import("@teyuto/videojs-vtt-thumbnails/src/videojs-vtt-thumbnails.js");
+      await import("@teyuto/videojs-vtt-thumbnails/src/videojs-vtt-thumbnails.css");
+    }
+
     const srcOpt = { sources: { src: props.source, type: sourceType.value } };
     const langOpt = { language: code };
     const playbackRatesOpt = { playbackRates: [0.1, 0.2, 0.3, 0.4, 0.5, 0.8, 1.0, 1.5, 2.0, 4.0, 8.0] };
@@ -417,6 +426,17 @@ const initVideoPlayer = async () => {
 };
 
 const onPlayerReady = () => {
+  if (props.thumbnails) {
+    // Called here, not via options.plugins: video.js runs those plugins
+    // before the player's children exist, so player.controlBar is
+    // undefined inside the plugin.
+    // @ts-expect-error vttThumbnails is a basic plugin registered at runtime
+    player.value!.vttThumbnails({
+      spriteUrl: props.thumbnails.sprite,
+      vttData: { url: props.thumbnails.vtt },
+    });
+  }
+
   const controlBar = player.value!.getChild("ControlBar");
   if (controlBar) {
     controlBar.addChild("rotateCustomButton", {});

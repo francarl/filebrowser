@@ -11,6 +11,9 @@ importers:
       '@chenfengyuan/vue-number-input':
         specifier: ^2.0.1
         version: 2.0.1(vue@3.5.39(typescript@5.9.3))
+      '@teyuto/videojs-vtt-thumbnails':
+        specifier: ^1.0.3
+        version: 1.0.3
       '@vueuse/core':
         specifier: ^14.0.0
         version: 14.3.0(vue@3.5.39(typescript@5.9.3))
@@ -1128,6 +1131,9 @@ packages:
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
+
+  '@teyuto/videojs-vtt-thumbnails@1.0.3':
+    resolution: {integrity: sha512-S3zhMAmysl6wOZuV1N/i8xHGf+12zesS/xPr40u4Q9csQWNOPxFtRGOqUECDCBFxqvYej+o4xzRgUOG2oOXy3w==}
 
   '@tsconfig/node24@24.0.4':
     resolution: {integrity: sha512-2A933l5P5oCbv6qSxHs7ckKwobs8BDAe9SJ/Xr2Hy+nDlwmLE1GhFh/g/vXGRZWgxBg9nX/5piDtHR9Dkw/XuA==}
@@ -3797,6 +3803,8 @@ snapshots:
       picomatch: 4.0.5
 
   '@standard-schema/spec@1.1.0': {}
+
+  '@teyuto/videojs-vtt-thumbnails@1.0.3': {}
 
   '@tsconfig/node24@24.0.4': {}
 

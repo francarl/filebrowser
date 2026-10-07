@@ -121,6 +121,7 @@
           ref="player"
           :source="previewUrl"
           :subtitles="subtitles"
+          :thumbnails="thumbnails"
           :options="videoOptions"
         >
         </VideoPlayer>
@@ -324,6 +325,10 @@ const subtitles = computed(() => {
   }
   return [];
 });
+
+const thumbnails = computed(() =>
+  fileStore.req ? api.getThumbnailsURL(fileStore.req) : undefined
+);
 
 const videoOptions = computed(() => {
   return { autoplay: autoPlay.value };

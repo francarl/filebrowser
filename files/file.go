@@ -28,8 +28,9 @@ import (
 )
 
 var (
-	reSubDirs = regexp.MustCompile("(?i)^sub(s|titles)$")
-	reSubExts = regexp.MustCompile("(?i)(.vtt|.srt|.ass|.ssa)$")
+	reSubDirs     = regexp.MustCompile("(?i)^sub(s|titles)$")
+	reSubExts     = regexp.MustCompile("(?i)(.vtt|.srt|.ass|.ssa)$")
+	reThumbSprite = regexp.MustCompile(`(?i)\.thumbs\.(jpe?g|png)$`)
 )
 
 // FileInfo describes a file.
@@ -46,6 +47,7 @@ type FileInfo struct {
 	IsSymlink  bool              `json:"isSymlink"`
 	Type       string            `json:"type"`
 	Subtitles  []string          `json:"subtitles,omitempty"`
+	Thumbnails *Thumbnails       `json:"thumbnails,omitempty"`
 	Content    string            `json:"content,omitempty"`
 	Checksums  map[string]string `json:"checksums,omitempty"`
 	Token      string            `json:"token,omitempty"`
@@ -69,6 +71,12 @@ type FileOptions struct {
 type ImageResolution struct {
 	Width  int `json:"width"`
 	Height int `json:"height"`
+}
+
+// Thumbnails holds the pre-generated thumbnail sprite and its VTT index.
+type Thumbnails struct {
+	VTT    string `json:"vtt"`
+	Sprite string `json:"sprite"`
 }
 
 // NewFileInfo creates a File object from a path and a given user. This File
@@ -352,6 +360,7 @@ func (i *FileInfo) detectSubtitles() {
 	}
 
 	base := strings.TrimSuffix(i.Name, ext)
+	thumbsVTT, thumbsSprite := "", ""
 	for _, f := range dir {
 		// load all supported subtitles from subs directories
 		// should cover all instances of subtitle distributions
@@ -359,8 +368,19 @@ func (i *FileInfo) detectSubtitles() {
 		if f.IsDir() && reSubDirs.MatchString(f.Name()) {
 			subsDir := path.Join(parentDir, f.Name())
 			i.loadSubtitles(subsDir, base, true)
+		} else if strings.EqualFold(f.Name(), base+".thumbs.vtt") {
+			thumbsVTT = f.Name()
+		} else if reThumbSprite.MatchString(f.Name()) &&
+			strings.HasPrefix(strings.ToLower(f.Name()), strings.ToLower(base)+".thumbs.") {
+			thumbsSprite = f.Name()
 		} else if isSubtitleMatch(f, base) {
 			i.addSubtitle(path.Join(parentDir, f.Name()))
+		}
+	}
+	if thumbsVTT != "" && thumbsSprite != "" {
+		i.Thumbnails = &Thumbnails{
+			VTT:    path.Join(parentDir, thumbsVTT),
+			Sprite: path.Join(parentDir, thumbsSprite),
 		}
 	}
 }
@@ -385,7 +405,7 @@ func IsSupportedSubtitle(fileName string) bool {
 
 func isSubtitleMatch(f fs.FileInfo, baseName string) bool {
 	return !f.IsDir() && strings.HasPrefix(f.Name(), baseName) &&
-		IsSupportedSubtitle(f.Name())
+		IsSupportedSubtitle(f.Name()) && !strings.HasSuffix(strings.ToLower(f.Name()), ".thumbs.vtt")
 }
 
 func (i *FileInfo) addSubtitle(fPath string) {
@@ -521,5 +541,3 @@ func lstatIfPossible(afs afero.Fs, name string) (os.FileInfo, error) {
 
 	return afs.Stat(name)
 }
-
-
