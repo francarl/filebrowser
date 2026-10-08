@@ -360,7 +360,6 @@ func (i *FileInfo) detectSubtitles() {
 	}
 
 	base := strings.TrimSuffix(i.Name, ext)
-	thumbsVTT, thumbsSprite := "", ""
 	for _, f := range dir {
 		// load all supported subtitles from subs directories
 		// should cover all instances of subtitle distributions
@@ -368,19 +367,36 @@ func (i *FileInfo) detectSubtitles() {
 		if f.IsDir() && reSubDirs.MatchString(f.Name()) {
 			subsDir := path.Join(parentDir, f.Name())
 			i.loadSubtitles(subsDir, base, true)
-		} else if strings.EqualFold(f.Name(), base+".thumbs.vtt") {
-			thumbsVTT = f.Name()
-		} else if reThumbSprite.MatchString(f.Name()) &&
-			strings.HasPrefix(strings.ToLower(f.Name()), strings.ToLower(base)+".thumbs.") {
-			thumbsSprite = f.Name()
 		} else if isSubtitleMatch(f, base) {
 			i.addSubtitle(path.Join(parentDir, f.Name()))
 		}
 	}
+	i.detectThumbnails(parentDir, base)
+}
+
+// detectThumbnails looks for <base>.thumbs.vtt and <base>.thumbs.{png,jpg,jpeg}
+// inside the hidden .thumbs subfolder of the video's directory.
+func (i *FileInfo) detectThumbnails(parentDir, base string) {
+	thumbsDir, err := afero.ReadDir(i.Fs, path.Join(parentDir, ".thumbs"))
+	if err != nil {
+		return
+	}
+	thumbsVTT, thumbsSprite := "", ""
+	for _, f := range thumbsDir {
+		if f.IsDir() {
+			continue
+		}
+		if strings.EqualFold(f.Name(), base+".thumbs.vtt") {
+			thumbsVTT = f.Name()
+		} else if reThumbSprite.MatchString(f.Name()) &&
+			strings.HasPrefix(strings.ToLower(f.Name()), strings.ToLower(base)+".thumbs.") {
+			thumbsSprite = f.Name()
+		}
+	}
 	if thumbsVTT != "" && thumbsSprite != "" {
 		i.Thumbnails = &Thumbnails{
-			VTT:    path.Join(parentDir, thumbsVTT),
-			Sprite: path.Join(parentDir, thumbsSprite),
+			VTT:    path.Join(parentDir, ".thumbs", thumbsVTT),
+			Sprite: path.Join(parentDir, ".thumbs", thumbsSprite),
 		}
 	}
 }

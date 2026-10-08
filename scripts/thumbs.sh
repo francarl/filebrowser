@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Generate <base>.thumbs.vtt + <base>.thumbs.jpg for a video, compatible with
-# the videojs-vtt-thumbnails plugin used by filebrowser's preview player.
+# Generate <base>.thumbs.vtt + <base>.thumbs.jpg inside a hidden .thumbs/
+# subfolder of the video's directory, compatible with the videojs-vtt-thumbnails
+# plugin used by filebrowser's preview player.
 set -euo pipefail
 
 usage() {
@@ -40,9 +41,15 @@ duration=$(ffprobe -v error -show_entries format=duration \
 count=$(awk -v d="$duration" -v i="$interval" 'BEGIN { c = int(d / i) + 1; print (c < 1 ? 1 : c) }')
 rows=$(( (count + COLS - 1) / COLS ))
 
-base=${file%.*}
-sprite="$base.thumbs.jpg"
-vtt="$base.thumbs.vtt"
+fileBase=$(basename "$file")
+base=${fileBase%.*}
+thumbsDir="$(dirname "$file")/.thumbs"
+if ! mkdir -p "$thumbsDir" 2>/dev/null; then
+  echo "Cannot create $thumbsDir (read-only directory?)" >&2
+  exit 1
+fi
+sprite="$thumbsDir/$base.thumbs.jpg"
+vtt="$thumbsDir/$base.thumbs.vtt"
 
 # One pass: sample one frame per interval, scale, tile into a single sprite.
 ffmpeg -hide_banner -loglevel error -y -i "$file" \

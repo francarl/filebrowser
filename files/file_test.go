@@ -334,9 +334,11 @@ func TestReadListingSkipsInaccessibleChildren(t *testing.T) {
 
 func TestDetectThumbnails(t *testing.T) {
 	memFs := afero.NewMemMapFs()
-	_ = memFs.MkdirAll("/media", 0o755)
-	for _, n := range []string{"movie.mp4", "movie.thumbs.vtt", "movie.thumbs.jpg", "movie.en.vtt"} {
-		_ = afero.WriteFile(memFs, "/media/"+n, []byte("x"), 0o644)
+	_ = memFs.MkdirAll("/media/.thumbs", 0o755)
+	_ = afero.WriteFile(memFs, "/media/movie.mp4", []byte("x"), 0o644)
+	_ = afero.WriteFile(memFs, "/media/movie.en.vtt", []byte("x"), 0o644)
+	for _, n := range []string{"movie.thumbs.vtt", "movie.thumbs.jpg"} {
+		_ = afero.WriteFile(memFs, "/media/.thumbs/"+n, []byte("x"), 0o644)
 	}
 
 	file := &FileInfo{
@@ -350,7 +352,7 @@ func TestDetectThumbnails(t *testing.T) {
 	if file.Thumbnails == nil {
 		t.Fatal("expected thumbnails to be detected")
 	}
-	if file.Thumbnails.VTT != "/media/movie.thumbs.vtt" || file.Thumbnails.Sprite != "/media/movie.thumbs.jpg" {
+	if file.Thumbnails.VTT != "/media/.thumbs/movie.thumbs.vtt" || file.Thumbnails.Sprite != "/media/.thumbs/movie.thumbs.jpg" {
 		t.Fatalf("unexpected thumbnails: %+v", file.Thumbnails)
 	}
 	if len(file.Subtitles) != 1 || file.Subtitles[0] != "/media/movie.en.vtt" {
@@ -360,8 +362,27 @@ func TestDetectThumbnails(t *testing.T) {
 
 func TestDetectThumbnailsWithoutSprite(t *testing.T) {
 	memFs := afero.NewMemMapFs()
+	_ = memFs.MkdirAll("/media/.thumbs", 0o755)
+	_ = afero.WriteFile(memFs, "/media/movie.mp4", []byte("x"), 0o644)
+	_ = afero.WriteFile(memFs, "/media/.thumbs/movie.thumbs.vtt", []byte("x"), 0o644)
+
+	file := &FileInfo{
+		Fs:   memFs,
+		Path: "/media/movie.mp4",
+		Name: "movie.mp4",
+		Type: "video",
+	}
+	file.detectSubtitles()
+
+	if file.Thumbnails != nil {
+		t.Fatalf("expected no thumbnails without sprite, got %+v", file.Thumbnails)
+	}
+}
+
+func TestDetectThumbnailsIgnoresFlatFiles(t *testing.T) {
+	memFs := afero.NewMemMapFs()
 	_ = memFs.MkdirAll("/media", 0o755)
-	for _, n := range []string{"movie.mp4", "movie.thumbs.vtt"} {
+	for _, n := range []string{"movie.mp4", "movie.thumbs.vtt", "movie.thumbs.jpg"} {
 		_ = afero.WriteFile(memFs, "/media/"+n, []byte("x"), 0o644)
 	}
 
@@ -374,7 +395,7 @@ func TestDetectThumbnailsWithoutSprite(t *testing.T) {
 	file.detectSubtitles()
 
 	if file.Thumbnails != nil {
-		t.Fatalf("expected no thumbnails without sprite, got %+v", file.Thumbnails)
+		t.Fatalf("expected flat thumbs files to be ignored, got %+v", file.Thumbnails)
 	}
 }
 
