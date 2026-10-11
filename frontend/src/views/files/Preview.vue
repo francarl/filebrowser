@@ -15,6 +15,13 @@
         :icon="fullSize ? 'photo_size_select_large' : 'hd'"
         @action="toggleSize"
       />
+      <action
+        :disabled="layoutStore.loading"
+        v-if="fileStore.req?.type === 'image'"
+        icon="rotate_right"
+        :label="$t('buttons.rotate')"
+        @action="rotateImage"
+      />
 
       <template #actions>
         <action
@@ -106,6 +113,7 @@
         <CsvViewer v-else-if="isCsv" :content="csvContent" :error="csvError" />
         <ExtendedImage
           v-else-if="fileStore.req?.type == 'image'"
+          ref="imageEl"
           :src="previewUrl"
         />
         <audio
@@ -267,6 +275,7 @@ const csvContent = ref<ArrayBuffer | string>("");
 const csvError = ref<string>("");
 
 const player = ref<HTMLVideoElement | HTMLAudioElement | null>(null);
+const imageEl = ref<InstanceType<typeof ExtendedImage>>();
 
 const $showError = inject<IToastError>("$showError")!;
 
@@ -480,6 +489,8 @@ const prefetchUrl = (item: ResourceItem) => {
 };
 
 const toggleSize = () => (fullSize.value = !fullSize.value);
+
+const rotateImage = () => imageEl.value?.rotate();
 
 const toggleNavigation = throttle(function () {
   showNav.value = true;

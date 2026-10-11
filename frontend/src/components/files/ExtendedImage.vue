@@ -32,6 +32,7 @@ const props = withDefaults(defineProps<IProps>(), {
 });
 
 const scale = ref<number>(1);
+const rotation = ref<number>(0);
 const lastX = ref<number | null>(null);
 const lastY = ref<number | null>(null);
 const inDrag = ref<boolean>(false);
@@ -97,6 +98,7 @@ watch(
     }
 
     scale.value = 1;
+    rotation.value = 0;
     setZoom();
     setCenter();
   }
@@ -303,11 +305,18 @@ const setZoom = () => {
   scale.value = scale.value < minScale.value ? minScale.value : scale.value;
   scale.value = scale.value > maxScale.value ? maxScale.value : scale.value;
   if (imgex.value !== null)
-    imgex.value.style.transform = `scale(${scale.value})`;
+    imgex.value.style.transform = `rotate(${rotation.value}deg) scale(${scale.value})`;
 };
 const pxStringToNumber = (style: string) => {
   return +style.replace("px", "");
 };
+
+defineExpose({
+  rotate: () => {
+    rotation.value = (rotation.value + 90) % 360;
+    setZoom();
+  },
+});
 </script>
 <style>
 .image-ex-container {

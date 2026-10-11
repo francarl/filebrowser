@@ -29,6 +29,7 @@
     "rename": "Rename",
     "replace": "Replace",
     "reportIssue": "Report Issue",
+    "rotate": "Rotate",
     "resumeTransfer": "Resume previous transfer",
     "resumeTransferTooltip": "Skip all conflicting files, except the ones that are smaller on the server as we suppose that their transfert has been interrupted.",
     "save": "Save",
