@@ -379,7 +379,7 @@ func writeFile(afs afero.Fs, dst string, in io.Reader, fileMode, dirMode fs.File
 func delThumbs(ctx context.Context, fileCache FileCache, file *files.FileInfo) error {
 	for _, previewSizeName := range PreviewSizeNames() {
 		size, _ := ParsePreviewSize(previewSizeName)
-		if err := fileCache.Delete(ctx, previewCacheKey(file, size)); err != nil {
+		if err := fileCache.Delete(ctx, PreviewCacheKey(file, size)); err != nil {
 			return err
 		}
 	}

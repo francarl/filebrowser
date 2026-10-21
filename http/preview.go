@@ -75,6 +75,12 @@ func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, re
 
 var sem = make(chan int, 3)
 
+// VideoThumbnailArgs returns the ffmpeg arguments used to extract a 128x128
+// webp thumbnail from a video file.
+func VideoThumbnailArgs(path string) []string {
+	return []string{"-y", "-i", path, "-vf", "thumbnail,crop=w='min(iw\\,ih)':h='min(iw\\,ih)',scale=128:128", "-quality", "40", "-frames:v", "1", "-c:v", "webp", "-f", "image2pipe", "-"}
+}
+
 func handleVideoPreview(
 	w http.ResponseWriter,
 	r *http.Request,
@@ -86,15 +92,14 @@ func handleVideoPreview(
 ) (int, error) {
 	path := afero.FullBaseFsPath(files.BasePath(file.Fs), file.Path)
 
-	cacheKey := previewCacheKey(file, previewSize)
+	cacheKey := PreviewCacheKey(file, previewSize)
 	resizedImage, ok, err := fileCache.Load(r.Context(), cacheKey)
 	if err != nil {
 		return errToStatus(err), err
 	}
 	if !ok {
 		sem <- 1
-		// cmd := exec.Command("ffmpeg", "-y", "-i", path, "-vf", "thumbnail,crop=w='min(iw\\,ih)':h='min(iw\\,ih)',scale=128:128", "-qscale:v", "25", "-frames:v", "1", tmp.Name())
-		stdout, err := exec.Command("ffmpeg", "-y", "-i", path, "-vf", "thumbnail,crop=w='min(iw\\,ih)':h='min(iw\\,ih)',scale=128:128", "-quality", "40", "-frames:v", "1", "-c:v", "webp", "-f", "image2pipe", "-").Output()
+		stdout, err := exec.Command("ffmpeg", VideoThumbnailArgs(path)...).Output()
 		<- sem
 		if err != nil {
 			return errToStatus(err), err
@@ -103,12 +108,11 @@ func handleVideoPreview(
 		resizedImage = stdout
 
 		go func() {
-			cacheKey := previewCacheKey(file, previewSize)
+			cacheKey := PreviewCacheKey(file, previewSize)
 			if err := fileCache.Store(context.Background(), cacheKey, resizedImage); err != nil {
 				fmt.Printf("failed to cache resized image: %v", err)
 			}
 		}()
-
 	}
 
 	w.Header().Set("Cache-Control", "private")
@@ -141,7 +145,7 @@ func handleImagePreview(
 		return errToStatus(err), err
 	}
 
-	cacheKey := previewCacheKey(file, previewSize)
+	cacheKey := PreviewCacheKey(file, previewSize)
 	resizedImage, ok, err := fileCache.Load(r.Context(), cacheKey)
 	if err != nil {
 		return errToStatus(err), err
@@ -192,7 +196,7 @@ func createPreview(imgSvc ImgService, fileCache FileCache,
 	}
 
 	go func() {
-		cacheKey := previewCacheKey(file, previewSize)
+		cacheKey := PreviewCacheKey(file, previewSize)
 		if err := fileCache.Store(context.Background(), cacheKey, buf.Bytes()); err != nil {
 			fmt.Printf("failed to cache resized image: %v", err)
 		}
@@ -201,6 +205,6 @@ func createPreview(imgSvc ImgService, fileCache FileCache,
 	return buf.Bytes(), nil
 }
 
-func previewCacheKey(f *files.FileInfo, previewSize PreviewSize) string {
+func PreviewCacheKey(f *files.FileInfo, previewSize PreviewSize) string {
 	return fmt.Sprintf("%x%x%x", f.RealPath(), f.ModTime.Unix(), previewSize)
 }
