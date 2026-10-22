@@ -15,7 +15,8 @@ import (
 )
 
 type FileCache struct {
-	fs afero.Fs
+	fs   afero.Fs
+	root string
 
 	// granular locks
 	scopedLocks struct {
@@ -27,8 +28,14 @@ type FileCache struct {
 
 func New(fs afero.Fs, root string) *FileCache {
 	return &FileCache{
-		fs: afero.NewBasePathFs(fs, root),
+		fs:   afero.NewBasePathFs(fs, root),
+		root: root,
 	}
+}
+
+// Path returns the absolute path of the cached file for a key.
+func (f *FileCache) Path(key string) string {
+	return filepath.Join(f.root, f.getFileName(key))
 }
 
 func (f *FileCache) Store(_ context.Context, key string, value []byte) error {

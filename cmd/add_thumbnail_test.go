@@ -50,12 +50,16 @@ func TestAddThumbnailStoresBothSizes(t *testing.T) {
 	cache := diskcache.New(afero.NewOsFs(), cacheDir)
 
 	for _, size := range []fbhttp.PreviewSize{fbhttp.PreviewSizeThumb, fbhttp.PreviewSizeBig} {
-		data, ok, err := cache.Load(t.Context(), fbhttp.PreviewCacheKey(f, size))
+		key := fbhttp.PreviewCacheKey(f, size)
+		data, ok, err := cache.Load(t.Context(), key)
 		if err != nil {
 			t.Fatal(err)
 		}
 		if !ok || len(data) == 0 {
 			t.Errorf("expected cached thumbnail for size %v", size)
+		}
+		if _, err := os.Stat(cache.Path(key)); err != nil {
+			t.Errorf("expected Path(%q) to point to an existing file: %v", key, err)
 		}
 	}
 }

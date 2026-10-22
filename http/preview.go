@@ -7,10 +7,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
-	"github.com/spf13/afero"
-	"github.com/gorilla/mux"
 	"os/exec"
+
+	"github.com/gorilla/mux"
+	"github.com/spf13/afero"
+
 	"github.com/filebrowser/filebrowser/v2/files"
 	"github.com/filebrowser/filebrowser/v2/img"
 )
@@ -32,6 +35,7 @@ type FileCache interface {
 	Store(ctx context.Context, key string, value []byte) error
 	Load(ctx context.Context, key string) ([]byte, bool, error)
 	Delete(ctx context.Context, key string) error
+	Path(key string) string
 }
 
 func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, resizePreview bool) handleFunc {
@@ -106,6 +110,7 @@ func handleVideoPreview(
 		}
 
 		resizedImage = stdout
+		log.Printf("generated %s thumbnail for %s: %s", previewSize, file.Path, fileCache.Path(cacheKey))
 
 		go func() {
 			cacheKey := PreviewCacheKey(file, previewSize)
@@ -200,6 +205,7 @@ func createPreview(imgSvc ImgService, fileCache FileCache,
 		if err := fileCache.Store(context.Background(), cacheKey, buf.Bytes()); err != nil {
 			fmt.Printf("failed to cache resized image: %v", err)
 		}
+		log.Printf("generated %s thumbnail for %s: %s", previewSize, file.Path, fileCache.Path(cacheKey))
 	}()
 
 	return buf.Bytes(), nil

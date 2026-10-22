@@ -76,11 +76,12 @@ func addThumbnail(file, cacheDir string) error {
 	ctx := context.Background()
 
 	for _, size := range []fbhttp.PreviewSize{fbhttp.PreviewSizeThumb, fbhttp.PreviewSizeBig} {
-		if err := cache.Store(ctx, fbhttp.PreviewCacheKey(f, size), out); err != nil {
+		key := fbhttp.PreviewCacheKey(f, size)
+		if err := cache.Store(ctx, key, out); err != nil {
 			return err
 		}
+		fmt.Printf("thumbnail stored (%s): %s\n", size, cache.Path(key))
 	}
 
-	fmt.Printf("Thumbnail for %s stored in %s\n", path, cacheDir)
 	return nil
 }

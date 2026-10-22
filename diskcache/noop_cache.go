@@ -22,3 +22,7 @@ func (n *NoOp) Load(_ context.Context, _ string) (value []byte, exist bool, err 
 func (n *NoOp) Delete(_ context.Context, _ string) error {
 	return nil
 }
+
+func (n *NoOp) Path(_ string) string {
+	return ""
+}
